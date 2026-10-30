@@ -11,8 +11,9 @@ param(
     [string]$Build = "b12000",
     # 12.4 runs on any driver that reports CUDA >= 12.4 in nvidia-smi; 13.4 needs a newer driver.
     [string]$Cuda = "12.4",
-    [string]$ModelRepo = "unsloth/Qwen3.5-9B-GGUF",
-    [string]$ModelFile = "Qwen3.5-9B-Q4_K_M.gguf",
+    # Chosen in T22 (30/10): see the comparison table in llm/README.md.
+    [string]$ModelRepo = "unsloth/gemma-4-E4B-it-GGUF",
+    [string]$ModelFile = "gemma-4-E4B-it-Q4_K_M.gguf",
     [switch]$SkipModel
 )
 
@@ -38,7 +39,7 @@ if (-not (Test-Path (Join-Path $bin "llama-server.exe"))) {
 
 $modelPath = Join-Path $models $ModelFile
 if (-not $SkipModel -and -not (Test-Path $modelPath)) {
-    Write-Host "Downloading $ModelRepo/$ModelFile (~5.3 GB)" -ForegroundColor Cyan
+    Write-Host "Downloading $ModelRepo/$ModelFile (~4.6 GB)" -ForegroundColor Cyan
     curl.exe -L --fail -o $modelPath "https://huggingface.co/$ModelRepo/resolve/main/$ModelFile"
     if ($LASTEXITCODE -ne 0) { Remove-Item $modelPath -ErrorAction SilentlyContinue; throw "Model download failed" }
 }

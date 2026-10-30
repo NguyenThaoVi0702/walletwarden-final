@@ -139,7 +139,7 @@ def test_all_prompts_render(settings: Settings, summary: FinancialSummary, roast
     assert "5.400.000đ" in advice[1]["content"] and advice[-1]["role"] == "user"
     for tone in Tone:
         msgs = p.roast(roast_ctx.model_copy(update={"tone": tone}))
-        assert tone.value in msgs[0]["content"] and "2.500.000đ" in msgs[1]["content"]
+        assert tone.value in msgs[0]["content"] and "2.500.000đ" in msgs[-1]["content"]
     assert "JSON" in p.monthly_report(summary)[0]["content"]
     assert "Mua sắm" in p.quick_entry("áo 200k", CATEGORIES)[0]["content"]
 
@@ -167,5 +167,5 @@ def test_prompt_numbers_pass_the_guard(settings: Settings, summary: FinancialSum
 def test_fixed_cost_roast_gets_a_fairness_note(settings: Settings, roast_ctx) -> None:  # type: ignore[no-untyped-def]
     p = PromptBuilder(settings.prompts_dir)
     rent = roast_ctx.model_copy(update={"category": "Nhà ở"})
-    assert "chi phí cố định" in p.roast(rent)[1]["content"]
-    assert "chi phí cố định" not in p.roast(roast_ctx)[1]["content"]
+    assert "chi phí cố định" in p.roast(rent)[-1]["content"]
+    assert "chi phí cố định" not in p.roast(roast_ctx)[-1]["content"]

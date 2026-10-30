@@ -158,7 +158,7 @@ def test_new_triggers_have_safe_rule_roasts_and_prompts(
     ctx = cand.context.model_copy(update={"tone": tone})
     text = rules.roast(ctx)
     assert check_roast(text, _roast_numbers(ctx)) == text
-    prompt = PromptBuilder(settings.prompts_dir).roast(ctx)[1]["content"]
+    prompt = PromptBuilder(settings.prompts_dir).roast(ctx)[-1]["content"]
     assert "Sự kiện:" in prompt and "None" not in prompt
 
 
@@ -166,14 +166,14 @@ def test_note_of_the_new_transaction_becomes_the_roast_item(settings: Settings) 
     new = tx(350_000, "Giải trí").model_copy(update={"note": "vé concert"})
     c = run(new, [tx(700_000, "Giải trí", days_ago=4)], budgets={"Giải trí": 800_000})
     assert c and c.context.trigger == RoastTrigger.BUDGET_100 and c.context.item == "vé concert"
-    prompt = PromptBuilder(settings.prompts_dir).roast(c.context)[1]["content"]
+    prompt = PromptBuilder(settings.prompts_dir).roast(c.context)[-1]["content"]
     assert "Món vừa mua: vé concert" in prompt
     history = [tx(700_000, "Giải trí", days_ago=4)]
     no_note = run(tx(350_000, "Giải trí"), history, {"Giải trí": 800_000})
     assert (
         no_note
         and "không rõ (đừng đoán)"
-        in PromptBuilder(settings.prompts_dir).roast(no_note.context)[1]["content"]
+        in PromptBuilder(settings.prompts_dir).roast(no_note.context)[-1]["content"]
     )
 
 
@@ -198,3 +198,23 @@ def test_roast_item_drops_the_leading_verb(note: str, item: str | None) -> None:
     new = tx(45_000).model_copy(update={"note": note})
     c = run(new, [tx(45_000), tx(50_000)])
     assert c and c.context.item == item
+
+
+def test_roast_examples_only_use_their_own_numbers(settings: Settings) -> None:
+    from app.ai.formatting import big_numbers
+    from app.ai.prompts import roast_examples
+
+    examples = roast_examples(settings.prompts_dir)
+    assert set(examples) == {t.value for t in Tone}
+    for tone_examples in examples.values():
+        for e in tone_examples:
+            assert big_numbers(e.reply) <= _roast_numbers(e.context), e.reply
+
+
+def test_roast_prompt_puts_same_trigger_example_first(settings: Settings) -> None:
+    cand = SAMPLES[RoastTrigger.DAILY_SPIKE]
+    assert cand is not None
+    msgs = PromptBuilder(settings.prompts_dir).roast(cand.context)
+    roles = [m["role"] for m in msgs]
+    assert roles == ["system", *["user", "assistant"] * 3, "user"]
+    assert "hôm qua" in msgs[1]["content"].lower() and "bánh tráng trộn" in msgs[1]["content"]

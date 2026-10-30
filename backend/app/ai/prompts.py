@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 
+import yaml
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 from app.ai.formatting import money_slang_help, parse_amount, pct, vnd
@@ -93,9 +94,35 @@ def _env(prompts_dir: Path) -> Environment:
     return env
 
 
+@dataclass
+class RoastExample:
+    context: RoastContext
+    reply: str
+
+
+@lru_cache
+def roast_examples(prompts_dir: Path) -> dict[str, list[RoastExample]]:
+    """prompts/roast_examples.yaml, by tone. Missing file = no examples."""
+    path = prompts_dir / "roast_examples.yaml"
+    if not path.exists():
+        return {}
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    return {
+        tone: [
+            RoastExample(RoastContext(tone=tone, **e["context"]), e["reply"].strip())
+            for e in examples
+        ]
+        for tone, examples in data.items()
+    }
+
+
+MAX_ROAST_EXAMPLES = 3
+
+
 class PromptBuilder:
     def __init__(self, prompts_dir: Path) -> None:
         self._env = _env(prompts_dir)
+        self._dir = prompts_dir
 
     def _render(self, name: str, **ctx: object) -> str:
         return self._env.get_template(name).render(**ctx).strip()
@@ -118,19 +145,28 @@ class PromptBuilder:
         messages.append({"role": "user", "content": req.question})
         return messages
 
+    def _roast_user(self, ctx: RoastContext) -> str:
+        return self._render(
+            "roast_user.j2",
+            c=ctx,
+            f=roast_facts(ctx),
+            fixed_cost=ctx.category in FIXED_COST_CATEGORIES,
+        )
+
     def roast(self, ctx: RoastContext) -> list[Message]:
-        return [
-            {"role": "system", "content": self._render("roast_system.j2", tone=ctx.tone.value)},
-            {
-                "role": "user",
-                "content": self._render(
-                    "roast_user.j2",
-                    c=ctx,
-                    f=roast_facts(ctx),
-                    fixed_cost=ctx.category in FIXED_COST_CATEGORIES,
-                ),
-            },
+        messages = [
+            {"role": "system", "content": self._render("roast_system.j2", tone=ctx.tone.value)}
         ]
+        # Few-shot turns: same trigger first, so the model sees the exact shape it must copy.
+        examples = sorted(
+            roast_examples(self._dir).get(ctx.tone.value, []),
+            key=lambda e: e.context.trigger != ctx.trigger,
+        )[:MAX_ROAST_EXAMPLES]
+        for e in examples:
+            messages.append({"role": "user", "content": self._roast_user(e.context)})
+            messages.append({"role": "assistant", "content": e.reply})
+        messages.append({"role": "user", "content": self._roast_user(ctx)})
+        return messages
 
     def monthly_report(self, summary: FinancialSummary) -> list[Message]:
         return [

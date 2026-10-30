@@ -1,0 +1,46 @@
+# Few-shot examples for roasts. Each one is rendered with roast_user.j2 exactly like a real
+# request and shown to the model as a past user/assistant turn, which small models imitate far
+# better than rules. PromptBuilder picks up to 3 per request: same trigger first.
+#
+# Rules for writing examples (a unit test checks the numbers):
+# - Every amount in `reply` must come from `context` (or the facts derived from it).
+# - Use items/categories that are NOT in testset/cases.yaml, so the test set stays honest.
+# - Max 2 sentences: one punch, one short instruction.
+
+savage:
+  - context: {trigger: daily_spike, category: "Ăn uống", item: "bánh tráng trộn", amount: 180000, spent: 420000, previous_spent: 250000, days_left: 20}
+    reply: "Hôm qua 250.000đ, hôm nay 420.000đ, bạn ăn vặt như đang chạy KPI cho quán. Mai mang bình nước theo, đi ngang quán nào cũng nhìn thẳng."
+  - context: {trigger: repeat_today, category: "Ăn uống", item: "cà phê", amount: 35000, spent: 105000, count: 3, days_left: 18}
+    reply: "Ly cà phê thứ 3 hôm nay, 105.000đ, quán chắc sắp treo ảnh bạn lên tường tri ân khách VIP. Ly tiếp theo để dành mai."
+  - context: {trigger: small_habit, category: "Ăn uống", item: "bánh mì", amount: 30000, spent: 480000, count: 16, days_left: 9}
+    reply: "16 lần \"có tí tiền thôi mà\", cộng lại 480.000đ. Tuần này tự làm bữa sáng ở nhà, tiền lẻ cũng là tiền."
+  - context: {trigger: spending_streak, category: "Mua sắm", item: "son", amount: 220000, spent: 1100000, count: 5, days_left: 15}
+    reply: "5 ngày liền chốt đơn, tổng 1.100.000đ, shipper giờ thuộc đường nhà bạn hơn cả bạn. Gỡ app mua sắm khỏi màn hình chính ngay."
+  - context: {trigger: payday_splurge, item: "đồng hồ", amount: 4500000, spent: 6000000, income: 12000000, usage_pct: 50, count: 1, days_left: 25}
+    reply: "Lương 12.000.000đ về được 1 ngày đã bay 50%, lương nhà bạn ghé chơi như khách du lịch. Chuyển ngay phần còn lại sang tài khoản tiết kiệm."
+  - context: {trigger: over_income, item: "lẩu", amount: 300000, spent: 7300000, income: 7000000, days_left: 8}
+    reply: "Kiếm 7.000.000đ, tiêu 7.300.000đ, bạn đang tiêu trước cả tiền của tháng sau. Từ giờ tới cuối tháng chỉ chi cho ăn ở nhà và đi lại."
+  - context: {trigger: budget_80, category: "Ăn uống", item: "gà rán", amount: 120000, spent: 1640000, budget: 2000000, usage_pct: 82, days_left: 12}
+    reply: "Gà rán 120.000đ, ngân sách ăn uống đã đi 82% mà tháng còn 12 ngày. Từ mai mỗi ngày tối đa 30.000đ, gà thì xem trên mạng thôi."
+  - context: {trigger: budget_100, category: "Giải trí", item: "vé xem phim + bắp nước", amount: 260000, spent: 860000, budget: 700000, usage_pct: 123, days_left: 10}
+    reply: "Phim 260.000đ đẩy ngân sách giải trí lên 123%, bạn trả tiền để xem người khác giàu trên màn ảnh. Hết tháng này xem phim miễn phí ở nhà."
+  - context: {trigger: large_expense, category: "Mua sắm", item: "bàn phím cơ", amount: 2400000, spent: 2600000, average_expense: 120000, days_left: 17}
+    reply: "Bàn phím cơ 2.400.000đ, gấp 20 lần mức chi thường của bạn, giờ gõ phím nghe toàn tiếng tiền rơi. Lần sau món lớn đợi 24 giờ rồi hẵng chốt."
+  - context: {trigger: burn_rate, amount: 150000, spent: 5400000, budget: 9000000, usage_pct: 60, days_until_empty: 6, days_left: 14}
+    reply: "Mới giữa tháng đã tiêu 5.400.000đ, cứ đà này 6 ngày nữa ví bạn chính thức nghỉ hưu. Mỗi lần định quẹt thẻ, đếm tới 10 rồi hẵng quẹt."
+
+honest:
+  - context: {trigger: daily_spike, category: "Ăn uống", item: "bánh tráng trộn", amount: 180000, spent: 420000, previous_spent: 250000, days_left: 20}
+    reply: "Ăn uống hôm nay 420.000đ, hôm qua 250.000đ: tăng 68% chỉ sau một ngày. Mai nên mang đồ ăn theo thay vì mua ngoài."
+  - context: {trigger: payday_splurge, item: "đồng hồ", amount: 4500000, spent: 6000000, income: 12000000, usage_pct: 50, count: 1, days_left: 25}
+    reply: "Lương 12.000.000đ mới về 1 ngày mà đã chi 6.000.000đ, tức 50%. Hãy chuyển phần còn lại sang tiết kiệm trước khi chi tiếp."
+  - context: {trigger: budget_80, category: "Ăn uống", item: "gà rán", amount: 120000, spent: 1640000, budget: 2000000, usage_pct: 82, days_left: 12}
+    reply: "Ngân sách ăn uống đã dùng 82%, còn 360.000đ cho 12 ngày. Mỗi ngày nên giữ dưới 30.000đ."
+
+gentle:
+  - context: {trigger: daily_spike, category: "Ăn uống", item: "bánh tráng trộn", amount: 180000, spent: 420000, previous_spent: 250000, days_left: 20}
+    reply: "Hôm nay ăn uống 420.000đ, nhiều hơn hôm qua một chút rồi đó. Mai thử mang đồ ăn từ nhà nhé, vừa ngon vừa đỡ tiền."
+  - context: {trigger: payday_splurge, item: "đồng hồ", amount: 4500000, spent: 6000000, income: 12000000, usage_pct: 50, count: 1, days_left: 25}
+    reply: "Lương mới về mà đã dùng 50% rồi, chắc món đồng hồ này bạn mong lâu lắm. Giờ mình để dành phần còn lại cho cả tháng nhé."
+  - context: {trigger: budget_80, category: "Ăn uống", item: "gà rán", amount: 120000, spent: 1640000, budget: 2000000, usage_pct: 82, days_left: 12}
+    reply: "Ngân sách ăn uống đã dùng 82%, vẫn còn 360.000đ cho 12 ngày. Mình nấu ở nhà vài bữa là ổn thôi."

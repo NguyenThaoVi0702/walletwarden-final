@@ -20,6 +20,28 @@ Sự kiện: tổng chi tháng này vừa vượt quá thu nhập của tháng.
 {% elif c.trigger == "burn_rate" %}
 Sự kiện: chưa vượt ngân sách {{ scope }}, nhưng với tốc độ tiêu hiện tại sẽ hết tiền trước cuối tháng.
 {% endif %}
+{% if c.trigger == "over_income" %}
+{% set point = "kiếm " ~ (c.income | vnd) ~ " mà đã tiêu " ~ (c.spent | vnd) %}
+{% elif c.trigger == "budget_100" %}
+{% set point = "ngân sách " ~ scope ~ " đã lên " ~ (c.usage_pct | pct) %}
+{% elif c.trigger == "budget_80" %}
+{% set point = "ngân sách " ~ scope ~ " đã dùng " ~ (c.usage_pct | pct) ~ " mà tháng còn " ~ c.days_left ~ " ngày" %}
+{% elif c.trigger == "payday_splurge" %}
+{% set point = "lương về " ~ c.count ~ " ngày đã tiêu " ~ (c.usage_pct | pct) %}
+{% elif c.trigger == "daily_spike" %}
+{% set point = "hôm qua " ~ (c.previous_spent | vnd) ~ ", hôm nay " ~ (c.spent | vnd) %}
+{% elif c.trigger == "repeat_today" %}
+{% set point = "lần thứ " ~ c.count ~ " trong hôm nay" %}
+{% elif c.trigger == "small_habit" %}
+{% set point = c.count ~ " khoản lặt vặt cộng lại " ~ (c.spent | vnd) %}
+{% elif c.trigger == "spending_streak" %}
+{% set point = c.count ~ " ngày liên tiếp, tổng " ~ (c.spent | vnd) %}
+{% elif c.trigger == "large_expense" %}
+{% set point = "gấp " ~ f.times_average ~ " lần mức chi thường" %}
+{% else %}
+{% set point = "cứ đà này " ~ c.days_until_empty ~ " ngày nữa hết tiền, tháng còn " ~ c.days_left ~ " ngày" %}
+{% endif %}
+Ý CHÍNH PHẢI NÓI trong câu 1: {{ point }}.
 - Món vừa mua: {{ c.item if c.item else "không rõ (đừng đoán)" }}
 - Khoản vừa chi: {{ c.amount | vnd }}
 {% if c.trigger == "daily_spike" %}
