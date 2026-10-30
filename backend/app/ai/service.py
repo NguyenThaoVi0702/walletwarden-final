@@ -149,7 +149,7 @@ class DefaultAIService:
             f"roast_{context.tone.value}",
             user_id,
             self._prompts.roast(context),
-            max_tokens=160,
+            max_tokens=100,  # 1-2 short sentences; long roasts read worse
             temperature=0.7,  # 0.9 made a 9B model's savage roasts drift into nonsense
             check=lambda raw: check_roast(raw, allowed),
             fallback=lambda: rules.roast(context),
@@ -193,7 +193,9 @@ class DefaultAIService:
             category = by_lower.get(data["category"].strip().lower())
             if data["kind"] not in ("expense", "income") or category is None:
                 raise OutputRejectedError(f"unknown kind/category: {data}")
-            return {"kind": data["kind"], "category": category, "note": data["note"].strip()}
+            # The model sometimes leaves the amount in the note ("linh tinh 100k").
+            note = rules.entry_note(data["note"].strip())
+            return {"kind": data["kind"], "category": category, "note": note}
 
         def fallback() -> dict[str, str]:
             return {

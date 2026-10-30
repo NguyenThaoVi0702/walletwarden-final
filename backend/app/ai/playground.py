@@ -133,7 +133,9 @@ async def simulate(req: SimulateRequest) -> SimulateResponse:
     """Quick entry -> detect_roast -> roast, exactly what the real app will do on save."""
     parsed = await entry(EntryRequest(text=req.text))
     category = req.category or parsed.category
-    tx = TxRecord(kind=parsed.kind, amount=parsed.amount, category=category, day=req.day)
+    tx = TxRecord(
+        kind=parsed.kind, amount=parsed.amount, category=category, day=req.day, note=parsed.note
+    )
     cand = detect_roast(
         tx,
         [*req.history, tx],

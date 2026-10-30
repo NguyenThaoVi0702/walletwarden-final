@@ -17,6 +17,7 @@ from app.ai.interface import (
     Tone,
 )
 from app.ai.prompts import roast_facts
+from app.ai.triggers import FIXED_COST_CATEGORIES
 
 
 def _pick(options: list[str], seed: str) -> str:
@@ -162,7 +163,9 @@ def roast(ctx: RoastContext) -> str:
         "until_empty": ctx.days_until_empty,
     }
     seed = f"{ctx.trigger}{ctx.tone}{ctx.category}{ctx.amount}"
-    opener = _pick(_OPENERS[ctx.tone][ctx.trigger], seed).format(**fields)
+    # Never mock rent, bills or tuition: state the facts instead.
+    tone = Tone.HONEST if ctx.category in FIXED_COST_CATEGORIES else ctx.tone
+    opener = _pick(_OPENERS[tone][ctx.trigger], seed).format(**fields)
     tip = _pick(_TIPS[ctx.trigger], seed + "tip").format(**fields)
     return f"{opener[0].upper()}{opener[1:]} {tip}"
 

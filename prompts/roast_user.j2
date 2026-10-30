@@ -20,6 +20,7 @@ Sự kiện: tổng chi tháng này vừa vượt quá thu nhập của tháng.
 {% elif c.trigger == "burn_rate" %}
 Sự kiện: chưa vượt ngân sách {{ scope }}, nhưng với tốc độ tiêu hiện tại sẽ hết tiền trước cuối tháng.
 {% endif %}
+- Món vừa mua: {{ c.item if c.item else "không rõ (đừng đoán)" }}
 - Khoản vừa chi: {{ c.amount | vnd }}
 {% if c.trigger == "daily_spike" %}
 - Hôm qua đã chi cho mục này: {{ c.previous_spent | vnd }}

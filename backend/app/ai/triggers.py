@@ -41,6 +41,18 @@ BURN_MIN_DAYS = 5  # need some history before projecting
 BURN_MARGIN_DAYS = 3  # only when the money runs out clearly before month end
 
 _TOTAL = "_total"
+# "mua giày" -> "giày", so the roast reads "Giày 1.500.000đ..." not "Mua giày 1.500.000đ...".
+_ITEM_VERBS = ("mua ", "tiêu ", "chi ", "trả ", "đóng ", "ăn ", "uống ", "đi ")
+
+
+def _item(note: str | None) -> str | None:
+    item = (note or "").strip()
+    lowered = item.lower()
+    for verb in _ITEM_VERBS:
+        if lowered.startswith(verb) and len(item) > len(verb) + 1:
+            item = item[len(verb) :]
+            break
+    return item[:60] or None
 
 
 def _days_left(day: date) -> int:
@@ -97,7 +109,7 @@ def _candidates(
     def ctx(trigger: RoastTrigger, **kw: object) -> RoastContext:
         base: dict[str, object] = {
             "trigger": trigger, "tone": tone, "category": cat, "amount": new.amount,
-            "days_left": days_left,
+            "days_left": days_left, "item": _item(new.note),
         }  # fmt: skip
         base.update(kw)
         return RoastContext.model_validate(base)
@@ -111,6 +123,8 @@ def _candidates(
 
     def budget_cross(threshold: int, trigger: RoastTrigger) -> Iterable[RoastCandidate]:
         for scope, spent, limit in scopes:
+            if scope in FIXED_COST_CATEGORIES and spent <= limit:
+                continue  # paying the full rent/bill is the plan, not overspending
             if _pct(spent - new.amount, limit) < threshold <= _pct(spent, limit):
                 yield RoastCandidate(
                     key=f"{trigger}:{scope or _TOTAL}:{month}",
@@ -134,6 +148,9 @@ def _candidates(
 
     # 2. Budget fully used.
     yield from budget_cross(100, RoastTrigger.BUDGET_100)
+
+    if cat in FIXED_COST_CATEGORIES:
+        return  # rent, bills, tuition: only "really over budget/income" is worth a word
 
     # 3. Salary just arrived and a big part is already gone.
     paydays = [
@@ -237,7 +254,9 @@ def _candidates(
         for scope, spent, limit in scopes:
             if spent >= limit or _pct(spent, limit) >= 80:
                 continue  # budget_80 / budget_100 cover these
-            per_day = spent / today.day
+            # Rent and bills are paid once a month; leave them out of the daily pace.
+            fixed = _sum(t for t in expenses if t.category in FIXED_COST_CATEGORIES)
+            per_day = (spent - (fixed if scope is None else 0)) / today.day
             until_empty = int((limit - spent) / per_day) if per_day else days_left
             if until_empty + BURN_MARGIN_DAYS <= days_left:
                 yield RoastCandidate(

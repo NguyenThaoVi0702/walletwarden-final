@@ -160,3 +160,41 @@ def test_new_triggers_have_safe_rule_roasts_and_prompts(
     assert check_roast(text, _roast_numbers(ctx)) == text
     prompt = PromptBuilder(settings.prompts_dir).roast(ctx)[1]["content"]
     assert "Sự kiện:" in prompt and "None" not in prompt
+
+
+def test_note_of_the_new_transaction_becomes_the_roast_item(settings: Settings) -> None:
+    new = tx(350_000, "Giải trí").model_copy(update={"note": "vé concert"})
+    c = run(new, [tx(700_000, "Giải trí", days_ago=4)], budgets={"Giải trí": 800_000})
+    assert c and c.context.trigger == RoastTrigger.BUDGET_100 and c.context.item == "vé concert"
+    prompt = PromptBuilder(settings.prompts_dir).roast(c.context)[1]["content"]
+    assert "Món vừa mua: vé concert" in prompt
+    history = [tx(700_000, "Giải trí", days_ago=4)]
+    no_note = run(tx(350_000, "Giải trí"), history, {"Giải trí": 800_000})
+    assert (
+        no_note
+        and "không rõ (đừng đoán)"
+        in PromptBuilder(settings.prompts_dir).roast(no_note.context)[1]["content"]
+    )
+
+
+def test_paying_the_full_rent_is_not_a_roast() -> None:
+    assert run(tx(4_500_000, "Nhà ở"), [], budgets={"Nhà ở": 4_500_000}) is None
+    over = run(tx(4_800_000, "Nhà ở"), [], budgets={"Nhà ở": 4_500_000})
+    assert trigger(over) == RoastTrigger.BUDGET_100
+    assert over and "Ngân sách chỉ là gợi ý" not in rules.roast(over.context)
+
+
+def test_rent_does_not_count_as_burning_money() -> None:
+    assert run(tx(4_500_000, "Nhà ở"), [], budgets={"Nhà ở": 4_500_000}, total=8_000_000) is None
+    c = run(tx(100_000, "Khác"), [tx(4_500_000, "Nhà ở", days_ago=13)], total=8_000_000)
+    assert c is None
+
+
+@pytest.mark.parametrize(
+    ("note", "item"),
+    [("mua giày", "giày"), ("ăn lẩu tối", "lẩu tối"), ("vé concert", "vé concert"), ("", None)],
+)
+def test_roast_item_drops_the_leading_verb(note: str, item: str | None) -> None:
+    new = tx(45_000).model_copy(update={"note": note})
+    c = run(new, [tx(45_000), tx(50_000)])
+    assert c and c.context.item == item

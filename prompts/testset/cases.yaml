@@ -102,7 +102,7 @@ cases:
   - {id: R02, task: roast, expect: "Thẳng thắn, nêu 82% và 10 ngày còn lại.",
      context: {trigger: budget_80, tone: honest, category: "Ăn uống", amount: 120000, spent: 2050000, budget: 2500000, usage_pct: 82, days_left: 10}}
   - {id: R03, task: roast, expect: "Cà khịa hài hước, chỉ về chi tiêu, không xúc phạm cá nhân.",
-     context: {trigger: budget_80, tone: savage, category: "Ăn uống", amount: 120000, spent: 2050000, budget: 2500000, usage_pct: 82, days_left: 10}}
+     context: {item: "lẩu nướng", trigger: budget_80, tone: savage, category: "Ăn uống", amount: 120000, spent: 2050000, budget: 2500000, usage_pct: 82, days_left: 10}}
   - {id: R04, task: roast, expect: "Nhẹ nhàng, ngân sách cả tháng đã vượt.",
      context: {trigger: budget_100, tone: gentle, amount: 450000, spent: 6300000, budget: 6000000, usage_pct: 105, days_left: 6}}
   - {id: R05, task: roast, expect: "Thẳng thắn, nêu vượt 300.000đ.",
@@ -114,9 +114,9 @@ cases:
   - {id: R08, task: roast, expect: "Thẳng thắn về khoản lớn bất thường.",
      context: {trigger: large_expense, tone: honest, category: "Mua sắm", amount: 1200000, spent: 1900000, average_expense: 150000, days_left: 15}}
   - {id: R09, task: roast, expect: "Cà khịa khoản lớn; không bịa số; gợi ý quy tắc chờ 24h hoặc tương tự.",
-     context: {trigger: large_expense, tone: savage, category: "Mua sắm", amount: 1200000, spent: 1900000, average_expense: 150000, days_left: 15}}
+     context: {item: "tai nghe chống ồn", trigger: large_expense, tone: savage, category: "Mua sắm", amount: 1200000, spent: 1900000, average_expense: 150000, days_left: 15}}
   - {id: R10, task: roast, expect: "Giải trí vượt xa (163%) – savage nhưng không thô tục.",
-     context: {trigger: budget_100, tone: savage, category: "Giải trí", amount: 350000, spent: 650000, budget: 400000, usage_pct: 163, days_left: 12}}
+     context: {item: "vé concert", trigger: budget_100, tone: savage, category: "Giải trí", amount: 350000, spent: 650000, budget: 400000, usage_pct: 163, days_left: 12}}
   - {id: R11, task: roast, expect: "Mức 80% của ngân sách tháng, gợi ý giới hạn mỗi ngày.",
      context: {trigger: budget_80, tone: honest, amount: 200000, spent: 11300000, budget: 14000000, usage_pct: 81, days_left: 9}}
   - {id: R12, task: roast, expect: "Đầu tháng đã vượt nhà ở – savage nhưng công bằng (tiền nhà là chi phí cố định).",
@@ -124,15 +124,15 @@ cases:
 
   # Auto-roast scenarios from app.ai.detect_roast (added 30/10)
   - {id: R13, task: roast, expect: "Hôm qua 300k, hôm nay 500k ăn uống – savage gắt, nêu đúng 2 con số; không xúc phạm cá nhân.",
-     context: {trigger: daily_spike, tone: savage, category: "Ăn uống", amount: 250000, spent: 500000, previous_spent: 300000, days_left: 16}}
+     context: {item: "lẩu tối", trigger: daily_spike, tone: savage, category: "Ăn uống", amount: 250000, spent: 500000, previous_spent: 300000, days_left: 16}}
   - {id: R14, task: roast, expect: "Ly thứ 3 trong ngày – cà khịa thói quen, gợi ý dừng hôm nay.",
-     context: {trigger: repeat_today, tone: savage, category: "Ăn uống", amount: 45000, spent: 140000, count: 3, days_left: 16}}
+     context: {item: "trà sữa", trigger: repeat_today, tone: savage, category: "Ăn uống", amount: 45000, spent: 140000, count: 3, days_left: 16}}
   - {id: R15, task: roast, expect: "8 khoản lặt vặt thành 360.000đ – 'tiền nhỏ lỗ to'.",
-     context: {trigger: small_habit, tone: savage, category: "Ăn uống", amount: 45000, spent: 360000, count: 8, days_left: 16}}
+     context: {item: "cà phê", trigger: small_habit, tone: savage, category: "Ăn uống", amount: 45000, spent: 360000, count: 8, days_left: 16}}
   - {id: R16, task: roast, expect: "Mua sắm 4 ngày liền – gợi ý một ngày không mua.",
-     context: {trigger: spending_streak, tone: savage, category: "Mua sắm", amount: 150000, spent: 600000, count: 4, days_left: 16}}
+     context: {item: "áo thun", trigger: spending_streak, tone: savage, category: "Mua sắm", amount: 150000, spent: 600000, count: 4, days_left: 16}}
   - {id: R17, task: roast, expect: "Lương 10 triệu về 2 ngày đã đi 43% – gắt; không khuyên vay/rút tiết kiệm.",
-     context: {trigger: payday_splurge, tone: savage, amount: 1500000, spent: 4300000, income: 10000000, usage_pct: 43, count: 2, days_left: 16}}
+     context: {item: "giày sneaker", trigger: payday_splurge, tone: savage, amount: 1500000, spent: 4300000, income: 10000000, usage_pct: 43, count: 2, days_left: 16}}
   - {id: R18, task: roast, expect: "Chi vượt thu nhập – nêu vượt 100.000đ, không bịa số.",
      context: {trigger: over_income, tone: savage, amount: 200000, spent: 4100000, income: 4000000, days_left: 16}}
   - {id: R19, task: roast, expect: "Chưa vượt nhưng tốc độ này hết tiền sau 10 ngày, tháng còn 16 ngày.",

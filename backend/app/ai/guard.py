@@ -30,6 +30,9 @@ _PRONOUNS = [
     for word, polite in [("mày", "bạn"), ("Mày", "Bạn"), ("tao", "tôi"), ("Tao", "Tôi")]
 ]
 _THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
+# A reply cut off by max_tokens ends mid-word or after a comma; a finished one ends
+# with punctuation, a quote or an emoji.
+_UNFINISHED_RE = re.compile(r"[\w,;:–-]$")
 # A sentence ends at . ! ? … followed by whitespace, so "1.200.000đ" stays in one piece.
 _SENTENCE_END_RE = re.compile(r"(?<=[.!?…])[\"'”)]*\s+")
 
@@ -68,6 +71,8 @@ def check_roast(text: str, allowed_numbers: set[int]) -> str:
         text = pattern.sub(polite, text)
     _check_numbers(text, allowed_numbers)
     parts = sentences(text)
+    if len(parts) > 1 and _UNFINISHED_RE.search(parts[-1]):
+        parts = parts[:-1]  # cut off by max_tokens mid-sentence
     if len(parts) > 3:
         # Keep the opening and the practical suggestion, which the prompt puts last.
         parts = [*parts[:2], parts[-1]]

@@ -80,3 +80,9 @@ def test_report_parses_json_inside_text() -> None:
 def test_unsafe_roast_advice_is_rejected(text: str) -> None:
     with pytest.raises(OutputRejectedError):
         check_roast(text, set())
+
+
+def test_roast_drops_a_sentence_cut_off_by_max_tokens() -> None:
+    assert check_roast("Vé concert 350.000đ. Ví bạn đang", {350_000}) == "Vé concert 350.000đ."
+    assert check_roast("Ví toang rồi. Xoá app đi 🔥", set()) == "Ví toang rồi. Xoá app đi 🔥"
+    assert check_roast("Ví toang rồi. Xoá app,", set()) == "Ví toang rồi."

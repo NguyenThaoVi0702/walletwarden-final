@@ -109,15 +109,24 @@ class RoastContext(BaseModel):
     days_until_empty: int | None = Field(
         default=None, ge=0, description="burn_rate: days until the budget is gone at this pace"
     )
+    item: str | None = Field(
+        default=None,
+        max_length=60,
+        description="What was just bought, from the transaction note (e.g. 'vé concert'). "
+        "Without it the model must not guess the item.",
+    )
 
 
 class TxRecord(BaseModel):
-    """One transaction as `detect_roast` needs it (no notes, no ids)."""
+    """One transaction as `detect_roast` needs it (no ids)."""
 
     kind: Literal["expense", "income"]
     amount: int = Field(gt=0)
     category: str
     day: date
+    note: str | None = Field(
+        default=None, description="Short note of the NEW transaction only; becomes the roast item"
+    )
 
 
 class RoastCandidate(BaseModel):
