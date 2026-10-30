@@ -1,0 +1,26 @@
+{% if c.trigger == "budget_80" %}
+Sự kiện: ngân sách {{ "mục " ~ c.category if c.category else "cả tháng" }} vừa vượt mốc 80%.
+{% elif c.trigger == "budget_100" %}
+Sự kiện: ngân sách {{ "mục " ~ c.category if c.category else "cả tháng" }} vừa bị vượt (từ 100% trở lên).
+{% else %}
+Sự kiện: một khoản chi lớn bất thường{{ " cho mục " ~ c.category if c.category else "" }}.
+{% endif %}
+- Khoản vừa chi: {{ c.amount | vnd }}
+- Đã chi trong phạm vi này tháng này: {{ c.spent | vnd }}
+{% if c.budget is not none %}
+- Ngân sách: {{ c.budget | vnd }} (đã dùng {{ c.usage_pct | pct }})
+{% if f.remaining is not none and f.remaining >= 0 %}
+- Còn lại: {{ f.remaining | vnd }}
+{% elif f.remaining is not none %}
+- Đã vượt: {{ (-f.remaining) | vnd }}
+{% endif %}
+{% endif %}
+{% if f.daily_allowance %}
+- Để không vượt, mỗi ngày chỉ nên chi tối đa: {{ f.daily_allowance | vnd }}
+{% endif %}
+{% if c.average_expense %}
+- Mức chi trung bình mỗi lần của người dùng: {{ c.average_expense | vnd }} (khoản này gấp khoảng {{ f.times_average }} lần)
+{% endif %}
+- Số ngày còn lại trong tháng: {{ c.days_left }}
+
+Hãy viết lời nhắn.

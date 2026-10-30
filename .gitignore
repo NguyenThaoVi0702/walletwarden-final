@@ -1,0 +1,41 @@
+# Secrets
+.env
+*.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Data & logs (never commit user data)
+*.db
+*.db-wal
+*.db-shm
+logs/*
+!logs/.gitkeep
+
+# LLM weights are large — download them, never commit them
+llm/models/
+*.gguf
+llm/bin/
+
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/dev-dist/
+playwright-report/
+test-results/
+
+# Tunnel / demo artefacts
+scripts/.demo/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/

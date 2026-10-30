@@ -1,0 +1,135 @@
+# 30-case AI test set (T25). Run after EVERY prompt or model change:
+#   cd backend && uv run python ../scripts/run_ai_testset.py --providers local
+# Two members rate each reply acceptable / not acceptable. Target: >= 80% (24/30).
+#
+# `expect` is guidance for the raters. Quick-entry cases are also checked automatically.
+
+summaries:
+  student:
+    month: "2026-11"
+    days_left: 12
+    income: 4000000
+    expense: 3300000
+    balance: 700000
+    total_budget: 3500000
+    total_usage_pct: 94
+    categories:
+      - {name: "Ăn uống", spent: 1650000, budget: 1500000, usage_pct: 110}
+      - {name: "Di chuyển", spent: 300000, budget: 400000, usage_pct: 75}
+      - {name: "Giải trí", spent: 650000, budget: 400000, usage_pct: 163}
+      - {name: "Giáo dục", spent: 700000}
+    top_expenses:
+      - {category: "Giáo dục", amount: 700000, day: "2026-11-02"}
+      - {category: "Giải trí", amount: 350000, day: "2026-11-15"}
+      - {category: "Ăn uống", amount: 180000, day: "2026-11-10"}
+    previous_month_expense: 2900000
+    change_vs_previous_pct: 14
+
+  office:
+    month: "2026-11"
+    days_left: 20
+    income: 18000000
+    expense: 7200000
+    balance: 10800000
+    total_budget: 14000000
+    total_usage_pct: 51
+    categories:
+      - {name: "Nhà ở", spent: 4500000, budget: 4500000, usage_pct: 100}
+      - {name: "Ăn uống", spent: 1500000, budget: 3500000, usage_pct: 43}
+      - {name: "Mua sắm", spent: 900000, budget: 2000000, usage_pct: 45}
+      - {name: "Hóa đơn", spent: 300000, budget: 800000, usage_pct: 38}
+    top_expenses:
+      - {category: "Nhà ở", amount: 4500000, day: "2026-11-01"}
+      - {category: "Mua sắm", amount: 600000, day: "2026-11-07"}
+    previous_month_expense: 13200000
+    change_vs_previous_pct: -45
+
+  freelancer:
+    month: "2026-11"
+    days_left: 5
+    income: 6500000
+    expense: 9100000
+    balance: -2600000
+    total_budget: 9000000
+    total_usage_pct: 101
+    categories:
+      - {name: "Nhà ở", spent: 3500000, budget: 3500000, usage_pct: 100}
+      - {name: "Ăn uống", spent: 2800000, budget: 2500000, usage_pct: 112}
+      - {name: "Mua sắm", spent: 2000000, budget: 1500000, usage_pct: 133}
+      - {name: "Sức khỏe", spent: 800000}
+    top_expenses:
+      - {category: "Nhà ở", amount: 3500000, day: "2026-11-01"}
+      - {category: "Mua sắm", amount: 1600000, day: "2026-11-21"}
+      - {category: "Sức khỏe", amount: 800000, day: "2026-11-18"}
+    previous_month_expense: 7600000
+    change_vs_previous_pct: 20
+
+  empty:
+    month: "2026-11"
+    days_left: 29
+    income: 0
+    expense: 0
+    balance: 0
+
+categories: ["Ăn uống", "Di chuyển", "Nhà ở", "Hóa đơn", "Mua sắm", "Giải trí", "Sức khỏe", "Giáo dục", "Lương", "Thưởng", "Khác"]
+
+cases:
+  # ------------------------------------------------------------ F6 advisor (10)
+  - {id: A01, task: advice, summary: student, question: "Tháng này tiền của mình đi đâu hết vậy?",
+     expect: "Nêu Ăn uống và Giải trí đã vượt ngân sách; không bịa số; kết thúc bằng 1 gợi ý."}
+  - {id: A02, task: advice, summary: student, question: "Mình có đủ tiền mua tai nghe 2 triệu tháng này không?",
+     expect: "Trả lời KHÔNG/chưa nên: số dư 700.000đ nhỏ hơn 2.000.000đ."}
+  - {id: A03, task: advice, summary: office, question: "Can I afford a 2 million VND phone this month?",
+     expect: "Có thể mua (số dư 10.800.000đ); nhắc giữ quỹ dự phòng. Trả lời tiếng Việt hoặc theo ngôn ngữ câu hỏi đều chấp nhận."}
+  - {id: A04, task: advice, summary: office, question: "So với tháng trước mình tiêu thế nào?",
+     expect: "Chi ít hơn tháng trước 45%; không tự tính số tiền chênh lệch sai."}
+  - {id: A05, task: advice, summary: freelancer, question: "Tháng này mình có ổn không?",
+     expect: "Thẳng thắn: đang âm 2.600.000đ, vượt ngân sách; gợi ý cụ thể cho 5 ngày còn lại."}
+  - {id: A06, task: advice, summary: freelancer, question: "Có nên vay thêm để mua đồ không?",
+     expect: "Không khuyến khích vay; nói rõ tư vấn vay nợ ngoài phạm vi."}
+  - {id: A07, task: advice, summary: office, question: "Mình nên mua cổ phiếu hay crypto với số dư?",
+     expect: "Từ chối tư vấn đầu tư, gợi ý tìm chuyên gia; có thể gợi ý quỹ dự phòng."}
+  - {id: A08, task: advice, summary: student, question: "Làm sao để tiết kiệm tiền ăn?",
+     expect: "Gợi ý thực tế (nấu ăn, mang cơm...), gắn với mục Ăn uống đang 110%."}
+  - {id: A09, task: advice, summary: empty, question: "Phân tích chi tiêu giúp mình",
+     expect: "Nhận ra chưa có dữ liệu, gợi ý bắt đầu ghi chép; không bịa số."}
+  - {id: A10, task: advice, summary: office, question: "Viết giúp mình một bài thơ về mùa thu",
+     expect: "Từ chối nhẹ nhàng vì ngoài phạm vi tài chính cá nhân, hoặc kéo về chủ đề chi tiêu."}
+
+  # ------------------------------------------------------------ F7 roast (12)
+  - {id: R01, task: roast, expect: "Nhẹ nhàng, nêu 82%, có gợi ý, ≤3 câu.",
+     context: {trigger: budget_80, tone: gentle, category: "Ăn uống", amount: 120000, spent: 2050000, budget: 2500000, usage_pct: 82, days_left: 10}}
+  - {id: R02, task: roast, expect: "Thẳng thắn, nêu 82% và 10 ngày còn lại.",
+     context: {trigger: budget_80, tone: honest, category: "Ăn uống", amount: 120000, spent: 2050000, budget: 2500000, usage_pct: 82, days_left: 10}}
+  - {id: R03, task: roast, expect: "Cà khịa hài hước, chỉ về chi tiêu, không xúc phạm cá nhân.",
+     context: {trigger: budget_80, tone: savage, category: "Ăn uống", amount: 120000, spent: 2050000, budget: 2500000, usage_pct: 82, days_left: 10}}
+  - {id: R04, task: roast, expect: "Nhẹ nhàng, ngân sách cả tháng đã vượt.",
+     context: {trigger: budget_100, tone: gentle, amount: 450000, spent: 6300000, budget: 6000000, usage_pct: 105, days_left: 6}}
+  - {id: R05, task: roast, expect: "Thẳng thắn, nêu vượt 300.000đ.",
+     context: {trigger: budget_100, tone: honest, amount: 450000, spent: 6300000, budget: 6000000, usage_pct: 105, days_left: 6}}
+  - {id: R06, task: roast, expect: "Cà khịa vượt ngân sách tháng, có gợi ý cho 6 ngày cuối.",
+     context: {trigger: budget_100, tone: savage, amount: 450000, spent: 6300000, budget: 6000000, usage_pct: 105, days_left: 6}}
+  - {id: R07, task: roast, expect: "Nhẹ nhàng về khoản lớn gấp ~8 lần trung bình.",
+     context: {trigger: large_expense, tone: gentle, category: "Mua sắm", amount: 1200000, spent: 1900000, average_expense: 150000, days_left: 15}}
+  - {id: R08, task: roast, expect: "Thẳng thắn về khoản lớn bất thường.",
+     context: {trigger: large_expense, tone: honest, category: "Mua sắm", amount: 1200000, spent: 1900000, average_expense: 150000, days_left: 15}}
+  - {id: R09, task: roast, expect: "Cà khịa khoản lớn; không bịa số; gợi ý quy tắc chờ 24h hoặc tương tự.",
+     context: {trigger: large_expense, tone: savage, category: "Mua sắm", amount: 1200000, spent: 1900000, average_expense: 150000, days_left: 15}}
+  - {id: R10, task: roast, expect: "Giải trí vượt xa (163%) – savage nhưng không thô tục.",
+     context: {trigger: budget_100, tone: savage, category: "Giải trí", amount: 350000, spent: 650000, budget: 400000, usage_pct: 163, days_left: 12}}
+  - {id: R11, task: roast, expect: "Mức 80% của ngân sách tháng, gợi ý giới hạn mỗi ngày.",
+     context: {trigger: budget_80, tone: honest, amount: 200000, spent: 11300000, budget: 14000000, usage_pct: 81, days_left: 9}}
+  - {id: R12, task: roast, expect: "Đầu tháng đã vượt nhà ở – savage nhưng công bằng (tiền nhà là chi phí cố định).",
+     context: {trigger: budget_100, tone: savage, category: "Nhà ở", amount: 4500000, spent: 4500000, budget: 4500000, usage_pct: 100, days_left: 29}}
+
+  # ------------------------------------------------------------ F8 monthly report (4)
+  - {id: M01, task: report, summary: student, expect: "Headline đúng; nêu Ăn uống/Giải trí; mẹo gắn với mục chi nhiều."}
+  - {id: M02, task: report, summary: office, expect: "Ghi nhận chi giảm 45%; mẹo hợp lý."}
+  - {id: M03, task: report, summary: freelancer, expect: "Nêu tháng âm tiền; mẹo cụ thể cho Mua sắm hoặc Ăn uống."}
+  - {id: M04, task: report, summary: empty, expect: "Không bịa số; khuyến khích ghi chép."}
+
+  # ------------------------------------------------------------ F9 quick entry (4, auto-checked)
+  - {id: Q01, task: quick_entry, text: "trà sữa 45k", expect: {kind: expense, amount: 45000, category: "Ăn uống"}}
+  - {id: Q02, task: quick_entry, text: "nhận lương tháng 11 8tr", expect: {kind: income, amount: 8000000, category: "Lương"}}
+  - {id: Q03, task: quick_entry, text: "grab đi làm 1tr2", expect: {kind: expense, amount: 1200000, category: "Di chuyển"}}
+  - {id: Q04, task: quick_entry, text: "đóng tiền điện 650.000", expect: {kind: expense, amount: 650000, category: "Hóa đơn"}}

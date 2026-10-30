@@ -1,0 +1,23 @@
+Số liệu tháng {{ s.month }} (còn {{ s.days_left }} ngày nữa hết tháng):
+- Thu nhập: {{ s.income | vnd }}
+- Đã chi: {{ s.expense | vnd }}
+- Số dư tháng: {{ s.balance | vnd }}
+- Ngân sách tổng: {{ s.total_budget | vnd }}{% if s.total_budget is not none %}, đã dùng {{ s.total_usage_pct | pct }}, còn lại {{ (s.total_budget - s.expense) | vnd }}{% endif %}
+
+{% if s.previous_month_expense is not none %}
+- Tháng trước đã chi: {{ s.previous_month_expense | vnd }}{% if s.change_vs_previous_pct is not none %} (tháng này thay đổi {{ s.change_vs_previous_pct }}%){% endif %}
+
+{% endif %}
+{% if s.categories %}
+Chi theo danh mục:
+{% for c in s.categories %}
+- {{ c.name }}: {{ c.spent | vnd }}{% if c.budget is not none %} / ngân sách {{ c.budget | vnd }} ({{ c.usage_pct | pct }}){% endif %}
+
+{% endfor %}
+{% endif %}
+{% if s.top_expenses %}
+Các khoản chi lớn nhất:
+{% for e in s.top_expenses %}
+- {{ e.day.strftime('%d/%m') }}: {{ e.category }} {{ e.amount | vnd }}
+{% endfor %}
+{% endif %}
