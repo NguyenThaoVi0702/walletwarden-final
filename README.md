@@ -1,6 +1,10 @@
+<p align="center"><img src="assets/brand/logo-192.png" width="120" alt="WalletWarden logo"></p>
+
 # WalletWarden
 
 > Spend less. Or get roasted.
+
+Logo và bảng màu chính thức (trắng, xanh lá `#36AB66`, xanh dương đậm `#0E2F51`): [assets/brand/](assets/brand/README.md).
 
 Trợ lý chi tiêu cá nhân dùng AI: ghi thu/chi, đặt ngân sách, xem dashboard, hỏi AI và bị AI "roast" khi tiêu quá tay. Toàn bộ hệ thống (app, database, LLM) chạy trên **một laptop** và mở ra cho người test qua **một link HTTPS tạm thời**.
 

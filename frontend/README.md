@@ -63,10 +63,11 @@ export default defineConfig({
       registerType: 'autoUpdate',
       manifest: {
         name: 'WalletWarden', short_name: 'WalletWarden', lang: 'vi',
-        theme_color: '#0F2A4A', background_color: '#FFFFFF', display: 'standalone',
+        theme_color: '#0E2F51', background_color: '#FFFFFF', display: 'standalone',
         icons: [
-          { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/logo-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/logo-512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/logo-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {
@@ -135,7 +136,53 @@ enableMocking().then(() => createRoot(document.getElementById('root')!).render(<
 - Build production (demo) **không** bật mock.
 - Trial 6/11 / tích hợp 10/11: `VITE_USE_MOCKS=false` + backend chạy ở :8000 (xem [INTEGRATION.md §3](../INTEGRATION.md)).
 
-## 4. Yêu cầu UI quan trọng
+## 4. Logo và màu sắc (bắt buộc dùng)
+
+Logo và bảng màu chính thức nằm ở [assets/brand/](../assets/brand/README.md): tông trắng, xanh lá, xanh dương đậm, lấy từ logo heo đất.
+
+Sau khi khởi tạo project, copy icon vào `public/`:
+
+```powershell
+Copy-Item ..\assets\brand\logo-*.png, ..\assets\brand\favicon.ico public\
+```
+
+`index.html`:
+
+```html
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/logo-180.png">
+<meta name="theme-color" content="#0E2F51">
+```
+
+`src/index.css` (Tailwind v4: khai báo màu một lần rồi dùng `bg-navy`, `text-green-700`, `bg-green`…):
+
+```css
+@import "tailwindcss";
+
+@theme {
+  --color-navy: #0E2F51;
+  --color-navy-900: #0B2440;
+  --color-navy-50: #E8EEF5;
+  --color-green: #36AB66;
+  --color-green-700: #1F7A45;
+  --color-green-50: #E9F6EE;
+  --color-surface: #F5F8FA;
+  --color-warning: #F2B84B;
+  --color-danger: #C0392B;
+}
+```
+
+Quy tắc dùng màu:
+- **Nút chính:** `bg-green text-navy`. Không dùng chữ trắng trên nền xanh lá vì không đủ tương phản.
+- **Chữ hoặc link xanh lá trên nền trắng:** dùng `text-green-700`, không dùng `text-green`.
+- **Header / sidebar:** `bg-navy text-white`, logo `logo-64.png` ở góc.
+- **Thanh ngân sách:** dưới 80% `bg-green`, từ 80% `bg-warning`, từ 100% `bg-danger`.
+- **Roast toast:**
+  - Gentle: `bg-green-50` viền `green`.
+  - Honest: `bg-navy-50` viền `navy`.
+  - Savage: `bg-navy text-white` viền `green` (giống logo).
+
+## 5. Yêu cầu UI quan trọng
 
 **Responsive (plan §8.4):** mobile-first, kiểm tra ở **375 px, 768 px, 1440 px**. Desktop: sidebar + dashboard rộng; điện thoại: bottom navigation + thẻ xếp chồng. Mọi PR thay đổi UI đính kèm ảnh 375 px và 1440 px.
 
@@ -150,7 +197,7 @@ enableMocking().then(() => createRoot(document.getElementById('root')!).render(<
 - Cài đặt: bật/tắt Roast Mode (mặc định **tắt**, opt-in) và chọn giọng.
 - Nhập nhanh (F9, làm sau M3): ô "trà sữa 45k" → `POST /api/ai/parse` → điền sẵn form để người dùng xác nhận, **không lưu tự động**.
 
-## 5. Test và CI
+## 6. Test và CI
 
 ```powershell
 npm run gen:api; npm run lint; npm run typecheck; npm test -- --run; npm run build
@@ -160,6 +207,6 @@ npm run gen:api; npm run lint; npm run typecheck; npm test -- --run; npm run bui
 - Tối thiểu: form thêm giao dịch (validate Zod), `BudgetProgress` (0%, 80%, >100%), `formatVND`, trang đăng nhập (lỗi 401).
 - CI job `frontend` chạy đúng chuỗi lệnh trên; nó cũng kiểm tra `schema.d.ts` khớp `openapi.json`.
 
-## 6. Ngày tích hợp
+## 7. Ngày tích hợp
 
 Checklist ở [INTEGRATION.md §4](../INTEGRATION.md). Trước 10/11: mọi màn hình chạy được với mock **và** không còn `any` ở chỗ gọi API.

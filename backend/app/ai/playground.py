@@ -16,6 +16,7 @@ from typing import Any
 import yaml
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from app.ai import detect_roast, get_ai_service
@@ -36,6 +37,7 @@ CASES = REPO_ROOT / "prompts" / "testset" / "cases.yaml"
 PAGE = Path(__file__).with_name("playground.html")
 
 app = FastAPI(title="WalletWarden AI playground", docs_url=None, redoc_url=None)
+app.mount("/brand", StaticFiles(directory=REPO_ROOT / "assets" / "brand"), name="brand")
 
 
 class EntryRequest(BaseModel):
