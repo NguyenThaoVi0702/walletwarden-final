@@ -1,9 +1,13 @@
+{% macro names(items) %}{% for c in items %}{{ c.name }}{{ ", " if not loop.last }}{% endfor %}{% endmacro %}
 Số liệu tháng {{ s.month }} (còn {{ s.days_left }} ngày nữa hết tháng):
 - Thu nhập: {{ s.income | vnd }}
 - Đã chi: {{ s.expense | vnd }}
-- Số dư tháng: {{ s.balance | vnd }}
-- Ngân sách tổng: {{ s.total_budget | vnd }}{% if s.total_budget is not none %}, đã dùng {{ s.total_usage_pct | pct }}, còn lại {{ (s.total_budget - s.expense) | vnd }}{% endif %}
-
+- Số dư tháng (tiền thực còn): {{ s.balance | vnd }}{{ " (âm: chi nhiều hơn thu)" if s.balance < 0 }}
+{% if s.total_budget is not none %}
+- Ngân sách tổng: {{ s.total_budget | vnd }}, đã dùng {{ s.total_usage_pct | pct }}
+{% else %}
+- Ngân sách tổng: chưa đặt
+{% endif %}
 {% if s.previous_month_expense is not none %}
 - Tháng trước đã chi: {{ s.previous_month_expense | vnd }}{% if s.change_vs_previous_pct is not none %} (tháng này thay đổi {{ s.change_vs_previous_pct }}%){% endif %}
 
@@ -11,7 +15,7 @@ Số liệu tháng {{ s.month }} (còn {{ s.days_left }} ngày nữa hết thán
 {% if s.categories %}
 Chi theo danh mục:
 {% for c in s.categories %}
-- {{ c.name }}: {{ c.spent | vnd }}{% if c.budget is not none %} / ngân sách {{ c.budget | vnd }} ({{ c.usage_pct | pct }}){% endif %}
+- {{ c.name }}: đã chi {{ c.spent | vnd }}{% if c.budget is not none %}, ngân sách {{ c.budget | vnd }}, dùng {{ c.usage_pct | pct }}{% if c.spent > c.budget %}, vượt {{ (c.spent - c.budget) | vnd }}{% elif c.spent < c.budget %}, còn {{ (c.budget - c.spent) | vnd }}{% endif %}{% else %}, chưa đặt ngân sách{% endif %}
 
 {% endfor %}
 {% endif %}
@@ -20,4 +24,39 @@ Các khoản chi lớn nhất:
 {% for e in s.top_expenses %}
 - {{ e.day.strftime('%d/%m') }}: {{ e.category }} {{ e.amount | vnd }}
 {% endfor %}
+{% endif %}
+
+Kết luận đã tính sẵn từ số liệu (luôn chính xác; dùng để trả lời nhưng viết lại bằng lời của bạn, không chép nguyên và không nhắc tên mục này):
+{% if s.income == 0 and s.expense == 0 %}
+- Tháng này chưa có giao dịch nào được ghi.
+{% endif %}
+{% if f.budget_left is not none %}
+{% if f.budget_left > 0 %}
+- Tổng chi đang trong ngân sách tổng, còn lại {{ f.budget_left | vnd }}.
+{% elif f.budget_left == 0 %}
+- Tổng chi đã dùng hết đúng ngân sách tổng.
+{% else %}
+- Tổng chi đã vượt ngân sách tổng {{ (-f.budget_left) | vnd }}.
+{% endif %}
+{% endif %}
+{% if f.over %}
+- Đã vượt ngân sách: {{ names(f.over) }}.
+{% endif %}
+{% if f.full %}
+- Đã dùng hết đúng ngân sách (không vượt): {{ names(f.full) }}.
+{% endif %}
+{% if f.near %}
+- Gần hết ngân sách (từ 80%): {{ names(f.near) }}.
+{% endif %}
+{% if f.within %}
+- Còn dư nhiều trong ngân sách: {{ names(f.within) }}.
+{% endif %}
+{% if f.no_budget %}
+- Chưa đặt ngân sách: {{ names(f.no_budget) }}.
+{% endif %}
+{% if f.vs_previous %}
+- Tháng này chi {{ f.vs_previous }} tháng trước.
+{% endif %}
+{% if f.price is not none %}
+- Khoản người dùng hỏi: {{ f.price | vnd }}. Số dư tháng {{ "đủ" if f.price_vs_balance else "không đủ" }} để trả khoản này{% if f.price_vs_budget is not none %}; ngân sách tổng còn lại {{ "đủ" if f.price_vs_budget else "không đủ" }}{% endif %}.
 {% endif %}

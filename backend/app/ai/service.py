@@ -132,7 +132,7 @@ class DefaultAIService:
             "advice",
             user_id,
             self._prompts.advice(request),
-            max_tokens=400,
+            max_tokens=250,
             temperature=0.6,
             check=check_advice,
             fallback=lambda: rules.advice(request),
@@ -147,7 +147,7 @@ class DefaultAIService:
             user_id,
             self._prompts.roast(context),
             max_tokens=160,
-            temperature=0.9,
+            temperature=0.7,  # 0.9 made a 9B model's savage roasts drift into nonsense
             check=lambda raw: check_roast(raw, allowed),
             fallback=lambda: rules.roast(context),
         )
@@ -160,7 +160,7 @@ class DefaultAIService:
             "monthly_report",
             user_id,
             self._prompts.monthly_report(summary),
-            max_tokens=500,
+            max_tokens=350,
             temperature=0.5,
             json_mode=True,
             check=lambda raw: check_report(raw, allowed),

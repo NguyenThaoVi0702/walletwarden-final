@@ -16,13 +16,14 @@ def pct(value: int | None) -> str:
 
 
 _AMOUNT = re.compile(
-    r"(?P<num>\d+(?:[.,]\d+)*)\s*(?P<unit>k|nghìn|nghin|ngàn|ngan|tr|triệu|trieu|m|đ|d|vnd)?"
+    r"(?P<num>\d+(?:[.,]\d+)*)\s*"
+    r"(?P<unit>k|nghìn|nghin|ngàn|ngan|tr|triệu|trieu|million|m|đ|d|vnd)?"
     r"(?P<tail>\d)?(?![\w])",
     re.IGNORECASE,
 )
 _UNIT = {
     "k": 1_000, "nghìn": 1_000, "nghin": 1_000, "ngàn": 1_000, "ngan": 1_000,
-    "tr": 1_000_000, "triệu": 1_000_000, "trieu": 1_000_000, "m": 1_000_000,
+    "tr": 1_000_000, "triệu": 1_000_000, "trieu": 1_000_000, "million": 1_000_000, "m": 1_000_000,
 }  # fmt: skip
 
 

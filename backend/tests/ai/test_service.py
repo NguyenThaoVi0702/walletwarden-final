@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 from app.ai import rules
+from app.ai.formatting import big_numbers
 from app.ai.guard import check_roast
 from app.ai.interface import (
     AdviceRequest,
@@ -13,9 +14,9 @@ from app.ai.interface import (
     RoastTrigger,
     Tone,
 )
-from app.ai.prompts import PromptBuilder
+from app.ai.prompts import PromptBuilder, summary_facts
 from app.ai.providers.base import ProviderError
-from app.ai.service import _roast_numbers
+from app.ai.service import _roast_numbers, _summary_numbers
 from app.config import Settings
 
 from .conftest import ScriptedProvider
@@ -139,3 +140,30 @@ def test_all_prompts_render(settings: Settings, summary: FinancialSummary, roast
         assert tone.value in msgs[0]["content"] and "2.500.000đ" in msgs[1]["content"]
     assert "JSON" in p.monthly_report(summary)[0]["content"]
     assert "Mua sắm" in p.quick_entry("áo 200k", CATEGORIES)[0]["content"]
+
+
+def test_summary_facts_decide_comparisons(summary: FinancialSummary) -> None:
+    f = summary_facts(summary, "Mua điện thoại 2 triệu được không?")
+    assert f.budget_left == 600_000
+    assert [c.name for c in f.over] == ["Ăn uống"]
+    assert [c.name for c in f.within] == ["Di chuyển"]
+    assert [c.name for c in f.no_budget] == ["Mua sắm"]
+    assert f.vs_previous == "nhiều hơn"
+    assert (f.price, f.price_vs_balance, f.price_vs_budget) == (2_000_000, True, False)
+
+
+def test_prompt_numbers_pass_the_guard(settings: Settings, summary: FinancialSummary) -> None:
+    # Every amount the prompt shows must be one the output guard accepts, or the model
+    # would get rejected for repeating it.
+    p = PromptBuilder(settings.prompts_dir)
+    text = p.monthly_report(summary)[1]["content"]
+    assert "Ăn uống: đã chi 2.700.000đ" in text and "vượt 200.000đ" in text
+    year = int(summary.month[:4])
+    assert big_numbers(text) - {year} <= _summary_numbers(summary)
+
+
+def test_fixed_cost_roast_gets_a_fairness_note(settings: Settings, roast_ctx) -> None:  # type: ignore[no-untyped-def]
+    p = PromptBuilder(settings.prompts_dir)
+    rent = roast_ctx.model_copy(update={"category": "Nhà ở"})
+    assert "chi phí cố định" in p.roast(rent)[1]["content"]
+    assert "chi phí cố định" not in p.roast(roast_ctx)[1]["content"]

@@ -19,6 +19,7 @@ def test_vnd() -> None:
         ("điện thoại 1.2tr", 1_200_000),
         ("áo khoác 1tr2", 1_200_000),
         ("Can I afford a 2 triệu phone", 2_000_000),
+        ("Can I afford a 2 million VND phone?", 2_000_000),
         ("tiền nhà 3,5 triệu", 3_500_000),
         ("grab 150.000", 150_000),
         ("cafe 30000đ", 30_000),

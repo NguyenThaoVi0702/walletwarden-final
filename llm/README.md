@@ -46,6 +46,7 @@ Ghi kết quả vào bảng dưới đây (đưa vào Design Document và Metric
 
 | Ngày | Model | VRAM | 1 user median / max | 4 user median / max | 5 user median | tok/s/user | Quality (30 case) |
 |---|---|---|---|---|---|---|---|
-| 30/10 | Qwen3.5-9B Q4_K_M, llama.cpp b12000 CUDA 12.4 | 5.8 / 8 GB (RTX 2000 Ada Laptop) | 2.8 s / 3.1 s | 5.7 s / 7.3 s | 5.7 s | 31 (1 user), 18 (4 user) | đang chấm, fallback 0%, quick entry 4/4 |
+| 30/10 | Qwen3.5-9B Q4_K_M, llama.cpp b12000 CUDA 12.4 | 5.8 / 8 GB (RTX 2000 Ada Laptop) | 2.8 s / 3.1 s | 5.7 s / 7.3 s | 5.7 s | 31 (1 user), 18 (4 user) | prompt v1: chấm sơ bộ khoảng 23–25/30, fallback 0%, quick entry 4/4 |
+| 30/10 | như trên, prompt v2 (tính sẵn kết luận, tư vấn ≤4 câu) | 5.8 / 8 GB | testset median 3.3 s, chậm nhất 6.0 s (tuần tự) | chưa đo lại | | | chấm sơ bộ khoảng 27/30, fallback 0%, quick entry 4/4; cần 2 người chấm R1/R2 |
 
 Ngưỡng hành động (plan §9.1): median > 5 s với 4 user → model nhỏ hơn hoặc prompt ngắn hơn; quality < 80% → đổi prompt/model hoặc dùng Gemini làm chính.

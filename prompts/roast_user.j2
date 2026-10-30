@@ -22,5 +22,8 @@ Sự kiện: một khoản chi lớn bất thường{{ " cho mục " ~ c.categor
 - Mức chi trung bình mỗi lần của người dùng: {{ c.average_expense | vnd }} (khoản này gấp khoảng {{ f.times_average }} lần)
 {% endif %}
 - Số ngày còn lại trong tháng: {{ c.days_left }}
+{% if fixed_cost %}
+- Lưu ý: {{ c.category }} là chi phí cố định cần thiết. Đừng chê việc trả khoản này; hãy trêu nhẹ rằng tháng này còn ít chỗ trống và gợi ý giữ chặt các mục khác.
+{% endif %}
 
 Hãy viết lời nhắn.
