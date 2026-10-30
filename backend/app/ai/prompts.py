@@ -10,7 +10,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
-from app.ai.formatting import parse_amount, pct, vnd
+from app.ai.formatting import money_slang_help, parse_amount, pct, vnd
 from app.ai.interface import AdviceRequest, CategorySummary, FinancialSummary, RoastContext
 from app.ai.triggers import FIXED_COST_CATEGORIES
 
@@ -102,7 +102,10 @@ class PromptBuilder:
 
     def advice(self, req: AdviceRequest) -> list[Message]:
         messages = [
-            {"role": "system", "content": self._render("advisor_system.j2")},
+            {
+                "role": "system",
+                "content": self._render("advisor_system.j2", slang=money_slang_help()),
+            },
             {
                 "role": "user",
                 "content": self._render(
@@ -142,7 +145,9 @@ class PromptBuilder:
         return [
             {
                 "role": "system",
-                "content": self._render("quick_entry_system.j2", categories=categories),
+                "content": self._render(
+                    "quick_entry_system.j2", categories=categories, slang=money_slang_help()
+                ),
             },
             {"role": "user", "content": text},
         ]

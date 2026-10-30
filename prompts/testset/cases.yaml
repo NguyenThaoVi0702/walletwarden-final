@@ -93,6 +93,8 @@ cases:
      expect: "Gợi ý thực tế (nấu ăn, mang cơm...), gắn với mục Ăn uống đang 110%."}
   - {id: A09, task: advice, summary: empty, question: "Phân tích chi tiêu giúp mình",
      expect: "Nhận ra chưa có dữ liệu, gợi ý bắt đầu ghi chép; không bịa số."}
+  - {id: A11, task: advice, summary: office, question: "Tháng này mua con laptop 3 chai được không?",
+     expect: "Hiểu 3 chai = 3.000.000đ; số dư 10.800.000đ đủ; viết số đầy đủ, không dùng tiếng lóng."}
   - {id: A10, task: advice, summary: office, question: "Viết giúp mình một bài thơ về mùa thu",
      expect: "Từ chối nhẹ nhàng vì ngoài phạm vi tài chính cá nhân, hoặc kéo về chủ đề chi tiêu."}
 
@@ -153,3 +155,8 @@ cases:
   - {id: Q02, task: quick_entry, text: "nhận lương tháng 11 8tr", expect: {kind: income, amount: 8000000, category: "Lương"}}
   - {id: Q03, task: quick_entry, text: "grab đi làm 1tr2", expect: {kind: expense, amount: 1200000, category: "Di chuyển"}}
   - {id: Q04, task: quick_entry, text: "đóng tiền điện 650.000", expect: {kind: expense, amount: 650000, category: "Hóa đơn"}}
+  # Money slang (lít/lốp/sọi = 100k, xị/lá = 10k, củ/chai = 1tr, tỏi = 1 tỷ)
+  - {id: Q05, task: quick_entry, text: "trà sữa 5 xị", expect: {kind: expense, amount: 50000, category: "Ăn uống"}}
+  - {id: Q06, task: quick_entry, text: "mua giày 2 lốp rưỡi", expect: {kind: expense, amount: 250000, category: "Mua sắm"}}
+  - {id: Q07, task: quick_entry, text: "nhận lương 15 củ", expect: {kind: income, amount: 15000000, category: "Lương"}}
+  - {id: Q08, task: quick_entry, text: "2 chai bia 50k", expect: {kind: expense, amount: 50000, category: "Ăn uống"}}

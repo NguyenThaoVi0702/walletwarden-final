@@ -8,7 +8,7 @@ import hashlib
 import re
 import unicodedata
 
-from app.ai.formatting import parse_amount, pct, vnd
+from app.ai.formatting import parse_amount, pct, strip_amounts, vnd
 from app.ai.interface import (
     AdviceRequest,
     FinancialSummary,
@@ -291,5 +291,4 @@ def guess_category(text: str, categories: list[str]) -> str:
 
 
 def entry_note(text: str) -> str:
-    note = re.sub(r"\d+(?:[.,]\d+)*\s*(k|nghìn|ngàn|tr|triệu|m|đ|vnd)?\d?\b", "", text, flags=re.I)
-    return re.sub(r"\s+", " ", note).strip(" -,.") or text.strip()
+    return strip_amounts(text) or text.strip()

@@ -86,6 +86,12 @@ Mở http://127.0.0.1:8001. Trang có 5 tab:
 
 Dữ liệu mẫu lấy từ bộ test.
 
+**Tiếng lóng tiền** ([formatting.py](formatting.py), `SLANG_UNIT`):
+- lít/lốp/sọi = 100.000đ, xị/lá = 10.000đ, củ/chai = 1.000.000đ, tỏi = 1 tỷ. "rưỡi" thêm nửa đơn vị.
+- Code đọc số, không phải model. Prompt lấy bảng từ cùng hằng số nên không bao giờ lệch.
+- Nếu trong câu có số tiền thường (50k, 150.000…) thì số đó thắng từ lóng, vì "chai", "lít", "lá" còn là từ đếm ("2 chai bia 50k").
+- Không hỗ trợ "vé" (100 USD), "lá" (Yên Nhật) vì app chỉ dùng VND. Cũng không hỗ trợ "khoai/kẹo/cành/ly/tô phở" vì không có giá trị cố định.
+
 **Roast tự động** ([triggers.py](triggers.py)): bảng 10 trigger và thứ tự ưu tiên nằm trong [backend/README.md](../../README.md). Các ngưỡng (1,5× hôm qua, ly thứ 3, 8 khoản ≤ 60k…) là hằng số đầu file, chỉnh ở đó rồi chạy `uv run pytest tests/ai/test_triggers.py`.
 
 Trang gọi đúng `AIService` thật, nên prompt, bộ lọc, fallback và rate limit giống hệt app. Rate limit là 10 câu hỏi/phút; khi vượt, trang báo "Rate limit: thử lại sau … giây".

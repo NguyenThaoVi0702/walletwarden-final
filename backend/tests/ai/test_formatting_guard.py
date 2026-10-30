@@ -1,6 +1,6 @@
 import pytest
 
-from app.ai.formatting import big_numbers, parse_amount, vnd
+from app.ai.formatting import big_numbers, parse_amount, strip_amounts, vnd
 from app.ai.guard import OutputRejectedError, check_advice, check_report, check_roast, clean
 
 
@@ -86,3 +86,32 @@ def test_roast_drops_a_sentence_cut_off_by_max_tokens() -> None:
     assert check_roast("Vé concert 350.000đ. Ví bạn đang", {350_000}) == "Vé concert 350.000đ."
     assert check_roast("Ví toang rồi. Xoá app đi 🔥", set()) == "Ví toang rồi. Xoá app đi 🔥"
     assert check_roast("Ví toang rồi. Xoá app,", set()) == "Ví toang rồi."
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("3 lốp", 300_000),
+        ("mượn 4 sọi", 400_000),
+        ("áo 2 lít rưỡi", 250_000),
+        ("trà sữa 5 xị", 50_000),
+        ("2 lá", 20_000),
+        ("điện thoại 5 củ", 5_000_000),
+        ("Lương 15 Củ", 15_000_000),
+        ("laptop 1 củ rưỡi", 1_500_000),
+        ("2 chai", 2_000_000),
+        ("nhà 1 tỏi", 1_000_000_000),
+        ("1tr rưỡi", 1_500_000),
+        # Counting words: a normal amount in the same text wins over the slang reading.
+        ("2 chai bia 50k", 50_000),
+        ("đổ 1 lít xăng 25k", 25_000),
+        ("3 lá bài 30.000", 30_000),
+    ],
+)
+def test_parse_money_slang(text: str, expected: int) -> None:
+    assert parse_amount(text) == expected
+
+
+def test_notes_drop_slang_amounts() -> None:
+    assert strip_amounts("trà sữa 5 xị") == "trà sữa"
+    assert strip_amounts("2 chai bia 50k") == "bia"
