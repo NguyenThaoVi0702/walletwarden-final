@@ -69,6 +69,18 @@ uv run python ../llm/bench.py --concurrency 1 4 5           # tốc độ llama-
 uv run python ../scripts/ai_metrics.py --day 2026-11-12     # metric response time + fallback rate
 ```
 
+**Trang thử bằng tay** ([playground.py](playground.py)): chỉ dùng khi dev, không thuộc app thật.
+
+```powershell
+cd backend
+$env:WW_AI_PROVIDERS="local"          # hoặc "fake" nếu không bật llama-server
+uv run uvicorn app.ai.playground:app --port 8001
+```
+
+Mở http://127.0.0.1:8001. Trang có 4 tab: cố vấn (chat, sửa được số liệu JSON), roast (thử cả 3 giọng một lúc), báo cáo tháng, nhập nhanh. Dữ liệu mẫu lấy từ bộ 30 case.
+
+Trang gọi đúng `AIService` thật, nên prompt, bộ lọc, fallback và rate limit giống hệt app. Rate limit là 10 câu hỏi/phút; khi vượt, trang báo "Rate limit: thử lại sau … giây".
+
 ## 4. Quy trình sửa prompt (bắt buộc theo plan §8.4)
 
 1. Nhánh `feature/ai-prompt-<gì>`; sửa file `.j2` trong `prompts/`.

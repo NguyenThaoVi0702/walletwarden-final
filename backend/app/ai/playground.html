@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Playground</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #ffffff; --text: #1c1f24; --muted: #667085; --border: #dde1e7;
+    --accent: #0f766e; --accent-soft: #e6f4f2; --user: #eef2ff; --warn: #b54708; --warn-soft: #fff4e5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #111418; --panel: #1a1e24; --text: #e6e8eb; --muted: #98a2b3; --border: #2c323b;
+      --accent: #2dd4bf; --accent-soft: #10302d; --user: #232a3d; --warn: #f5a524; --warn-soft: #33270f; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { padding: 16px; border-bottom: 1px solid var(--border); background: var(--panel);
+    display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+  h1 { font-size: 18px; margin: 0; }
+  #health { font-size: 13px; color: var(--muted); }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin: 0 4px 0 10px; }
+  nav { display: flex; gap: 4px; padding: 12px 16px 0; flex-wrap: wrap; }
+  nav button { border: 1px solid var(--border); border-bottom: none; background: transparent; color: var(--muted);
+    padding: 8px 14px; border-radius: 8px 8px 0 0; cursor: pointer; font: inherit; }
+  nav button.on { background: var(--panel); color: var(--text); font-weight: 600; }
+  main { max-width: 1100px; padding: 0 16px 32px; }
+  section { display: none; background: var(--panel); border: 1px solid var(--border);
+    border-radius: 0 8px 8px 8px; padding: 16px; }
+  section.on { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  @media (max-width: 760px) { section.on { grid-template-columns: minmax(0, 1fr); } }
+  label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
+  select, input, textarea { width: 100%; font: inherit; color: var(--text); background: var(--bg);
+    border: 1px solid var(--border); border-radius: 6px; padding: 7px 9px; }
+  textarea { font: 12.5px/1.45 ui-monospace, Consolas, monospace; min-height: 300px; resize: vertical; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+  .btn { margin-top: 12px; background: var(--accent); color: #fff; border: none; border-radius: 6px;
+    padding: 9px 16px; font: inherit; font-weight: 600; cursor: pointer; }
+  @media (prefers-color-scheme: dark) { .btn { color: #0b1f1d; } }
+  .btn:disabled { opacity: .5; cursor: wait; }
+  .btn.ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); margin-left: 6px; }
+  .chat { display: flex; flex-direction: column; gap: 8px; min-height: 200px; max-height: 480px; overflow-y: auto;
+    padding: 4px; }
+  .msg { padding: 10px 12px; border-radius: 10px; max-width: 92%; white-space: pre-wrap; }
+  .msg.user { background: var(--user); align-self: flex-end; }
+  .msg.ai { background: var(--accent-soft); align-self: flex-start; }
+  .meta { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .meta b.fb { color: var(--warn); }
+  .err { background: var(--warn-soft); color: var(--warn); padding: 10px 12px; border-radius: 8px; }
+  .out { background: var(--accent-soft); border-radius: 10px; padding: 12px 14px; white-space: pre-wrap; }
+  .out h3 { margin: 0 0 6px; font-size: 16px; }
+  .hint { font-size: 13px; color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .chips button { font: inherit; font-size: 13px; border: 1px solid var(--border); background: var(--bg);
+    color: var(--text); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>WalletWarden · AI Playground</h1>
+  <span id="health">đang kiểm tra model…</span>
+</header>
+<nav>
+  <button data-tab="advice" class="on">Cố vấn (F6)</button>
+  <button data-tab="roast">Roast (F7)</button>
+  <button data-tab="report">Báo cáo tháng (F8)</button>
+  <button data-tab="entry">Nhập nhanh (F9)</button>
+</nav>
+<main>
+  <!-- ADVICE -->
+  <section id="advice" class="on">
+    <div>
+      <label>Hồ sơ số liệu (từ bộ test, sửa JSON thoải mái)</label>
+      <select id="adv-preset"></select>
+      <label>FinancialSummary</label>
+      <textarea id="adv-summary"></textarea>
+    </div>
+    <div>
+      <label>Hội thoại</label>
+      <div class="chat" id="adv-chat"><div class="hint">Hỏi gì đó về chi tiêu tháng này…</div></div>
+      <div class="chips" id="adv-samples"></div>
+      <label>Câu hỏi</label>
+      <input id="adv-q" placeholder="Mình có đủ tiền mua tai nghe 2 triệu không?">
+      <button class="btn" id="adv-send">Gửi</button><button class="btn ghost" id="adv-clear">Xoá hội thoại</button>
+    </div>
+  </section>
+
+  <!-- ROAST -->
+  <section id="roast">
+    <div>
+      <label>Case mẫu</label>
+      <select id="ro-preset"></select>
+      <div class="row">
+        <div><label>Trigger</label>
+          <select id="ro-trigger"><option>budget_80</option><option>budget_100</option><option>large_expense</option></select></div>
+        <div><label>Giọng</label>
+          <select id="ro-tone"><option value="gentle">gentle – nhẹ nhàng</option><option value="honest">honest – thẳng thắn</option><option value="savage">savage – cà khịa</option></select></div>
+        <div><label>Danh mục (trống = cả tháng)</label><input id="ro-category"></div>
+        <div><label>Khoản vừa chi (đ)</label><input id="ro-amount" type="number"></div>
+        <div><label>Đã chi trong phạm vi (đ)</label><input id="ro-spent" type="number"></div>
+        <div><label>Ngân sách (đ)</label><input id="ro-budget" type="number"></div>
+        <div><label>% đã dùng</label><input id="ro-usage" type="number"></div>
+        <div><label>Chi trung bình/lần (đ)</label><input id="ro-avg" type="number"></div>
+        <div><label>Số ngày còn lại</label><input id="ro-days" type="number"></div>
+      </div>
+      <button class="btn" id="ro-send">Roast!</button>
+      <button class="btn ghost" id="ro-all">Thử cả 3 giọng</button>
+    </div>
+    <div><label>Kết quả</label><div id="ro-out" class="chat"></div></div>
+  </section>
+
+  <!-- REPORT -->
+  <section id="report">
+    <div>
+      <label>Hồ sơ số liệu</label>
+      <select id="rep-preset"></select>
+      <label>FinancialSummary</label>
+      <textarea id="rep-summary"></textarea>
+      <button class="btn" id="rep-send">Tạo báo cáo</button>
+    </div>
+    <div><label>Báo cáo</label><div id="rep-out"></div></div>
+  </section>
+
+  <!-- QUICK ENTRY -->
+  <section id="entry">
+    <div>
+      <label>Gõ giao dịch như trên điện thoại</label>
+      <input id="en-text" placeholder="trà sữa 45k">
+      <div class="chips" id="en-samples"></div>
+      <button class="btn" id="en-send">Phân tích</button>
+      <p class="hint">Số tiền do code đọc (không phải model); model chỉ chọn thu/chi, danh mục và ghi chú.</p>
+    </div>
+    <div><label>Kết quả</label><div id="en-out" class="chat"></div></div>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const vnd = (n) => n == null ? "–" : n.toLocaleString("vi-VN") + "đ";
+let P = null, history = [];
+
+document.querySelectorAll("nav button").forEach((b) => b.onclick = () => {
+  document.querySelectorAll("nav button, section").forEach((x) => x.classList.remove("on"));
+  b.classList.add("on"); $(b.dataset.tab).classList.add("on");
+});
+
+async function call(path, body) {
+  const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail ?? data, null, 1));
+  return data;
+}
+function meta(r) {
+  const fb = r.fallback ? ' · <b class="fb">fallback</b>' : "";
+  const ms = r.latency_ms != null ? ` · ${(r.latency_ms / 1000).toFixed(2)} s` : "";
+  return `<div class="meta">${r.provider}${ms}${fb}</div>`;
+}
+function bubble(box, cls, html) {
+  const d = document.createElement("div"); d.className = "msg " + cls; d.innerHTML = html;
+  box.querySelector(".hint")?.remove(); box.appendChild(d); box.scrollTop = box.scrollHeight; return d;
+}
+function errBox(box, e) { const d = document.createElement("div"); d.className = "err"; d.textContent = e.message; box.appendChild(d); }
+const esc = (s) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
+async function busy(btn, fn) { btn.disabled = true; try { await fn(); } finally { btn.disabled = false; } }
+function parseSummary(id) { return JSON.parse($(id).value); }
+
+async function health() {
+  try {
+    const h = await (await fetch("/health")).json();
+    $("health").innerHTML = "Chuỗi provider: <b>" + h.chain.join(" → ") + "</b>" +
+      Object.entries(h.providers).map(([k, ok]) =>
+        `<span class="dot" style="background:${ok ? "#12b76a" : "#f04438"}"></span>${k}`).join("");
+  } catch { $("health").textContent = "Không gọi được /health"; }
+}
+
+async function init() {
+  P = await (await fetch("/presets")).json();
+  for (const sel of ["adv-preset", "rep-preset"]) {
+    $(sel).innerHTML = Object.keys(P.summaries).map((k) => `<option>${k}</option>`).join("");
+  }
+  const fill = (sel, ta) => { $(ta).value = JSON.stringify(P.summaries[$(sel).value], null, 2); };
+  $("adv-preset").onchange = () => { fill("adv-preset", "adv-summary"); renderSamples(); };
+  $("rep-preset").onchange = () => fill("rep-preset", "rep-summary");
+  fill("adv-preset", "adv-summary"); fill("rep-preset", "rep-summary"); renderSamples();
+
+  $("ro-preset").innerHTML = Object.entries(P.roasts).map(([id, c]) =>
+    `<option value="${id}">${id} · ${c.trigger} · ${c.tone} · ${c.category ?? "cả tháng"}</option>`).join("");
+  $("ro-preset").onchange = loadRoast; loadRoast();
+
+  $("en-samples").innerHTML = ["trà sữa 45k", "nhận lương tháng 11 8tr", "grab đi làm 1tr2", "đóng tiền điện 650.000", "mua sách 120 nghìn"]
+    .map((t) => `<button>${t}</button>`).join("");
+  $("en-samples").querySelectorAll("button").forEach((b) => b.onclick = () => { $("en-text").value = b.textContent; $("en-send").click(); });
+}
+
+function renderSamples() {
+  const qs = P.questions.filter((q) => q.summary === $("adv-preset").value);
+  $("adv-samples").innerHTML = qs.map((q) => `<button title="${q.id}">${esc(q.question)}</button>`).join("");
+  $("adv-samples").querySelectorAll("button").forEach((b) => b.onclick = () => { $("adv-q").value = b.textContent; $("adv-send").click(); });
+}
+
+// ---- advice
+$("adv-send").onclick = () => busy($("adv-send"), async () => {
+  const q = $("adv-q").value.trim(); if (!q) return;
+  const box = $("adv-chat"); bubble(box, "user", esc(q)); $("adv-q").value = "";
+  try {
+    const r = await call("/advice", { summary: parseSummary("adv-summary"), question: q, history: history.slice(-6) });
+    bubble(box, "ai", esc(r.text) + meta(r));
+    history.push({ role: "user", content: q }, { role: "assistant", content: r.text });
+  } catch (e) { errBox(box, e); }
+});
+$("adv-q").onkeydown = (e) => { if (e.key === "Enter") $("adv-send").click(); };
+$("adv-clear").onclick = () => { history = []; $("adv-chat").innerHTML = '<div class="hint">Đã xoá. Hỏi tiếp nhé…</div>'; };
+
+// ---- roast
+const RO = { trigger: "ro-trigger", tone: "ro-tone", category: "ro-category", amount: "ro-amount", spent: "ro-spent",
+  budget: "ro-budget", usage_pct: "ro-usage", average_expense: "ro-avg", days_left: "ro-days" };
+function loadRoast() { const c = P.roasts[$("ro-preset").value]; for (const [k, id] of Object.entries(RO)) $(id).value = c[k] ?? ""; }
+function roastCtx(tone) {
+  const c = {};
+  for (const [k, id] of Object.entries(RO)) {
+    const v = $(id).value.trim(); if (v === "") continue;
+    c[k] = ["trigger", "tone", "category"].includes(k) ? v : Number(v);
+  }
+  if (tone) c.tone = tone; return c;
+}
+async function doRoast(tone) {
+  const box = $("ro-out"), ctx = roastCtx(tone);
+  try { const r = await call("/roast", ctx); bubble(box, "ai", `<b>${ctx.tone}</b> · ${$("ro-preset").value}\n` + esc(r.text) + meta(r)); }
+  catch (e) { errBox(box, e); }
+}
+$("ro-send").onclick = () => busy($("ro-send"), () => doRoast());
+$("ro-all").onclick = () => busy($("ro-all"), () => Promise.all(["gentle", "honest", "savage"].map(doRoast)));
+
+// ---- report
+$("rep-send").onclick = () => busy($("rep-send"), async () => {
+  const out = $("rep-out"); out.innerHTML = '<div class="hint">Đang viết báo cáo…</div>';
+  try {
+    const r = await call("/report", parseSummary("rep-summary"));
+    out.innerHTML = `<div class="out"><h3>${esc(r.headline)}</h3>${esc(r.commentary)}\n\n<b>Mẹo:</b> ${esc(r.saving_tip)}` +
+      `\n\n<b>Top danh mục:</b> ${r.top_categories.map((c) => `${c.name} ${vnd(c.spent)}`).join(", ") || "–"}` + meta(r) + "</div>";
+  } catch (e) { out.innerHTML = ""; errBox(out, e); }
+});
+
+// ---- quick entry
+$("en-send").onclick = () => busy($("en-send"), async () => {
+  const t = $("en-text").value.trim(); if (!t) return;
+  const box = $("en-out");
+  try {
+    const r = await call("/entry", { text: t });
+    bubble(box, "ai", `<b>${esc(t)}</b>\n${r.kind === "income" ? "Thu" : "Chi"} · ${vnd(r.amount)} · ${esc(r.category)}\nGhi chú: ${esc(r.note)}<div class="meta">${r.provider}</div>`);
+  } catch (e) { errBox(box, e); }
+});
+$("en-text").onkeydown = (e) => { if (e.key === "Enter") $("en-send").click(); };
+
+health(); init();
+</script>
+</body>
+</html>
