@@ -13,11 +13,14 @@ from app.ai.interface import (
     FinancialSummary,
     MonthlyReport,
     ParsedEntry,
+    RoastCandidate,
     RoastContext,
     RoastTrigger,
     Tone,
+    TxRecord,
 )
 from app.ai.service import DefaultAIService
+from app.ai.triggers import detect_roast
 from app.config import get_settings
 
 
@@ -38,8 +41,11 @@ __all__ = [
     "FinancialSummary",
     "MonthlyReport",
     "ParsedEntry",
+    "RoastCandidate",
     "RoastContext",
     "RoastTrigger",
     "Tone",
+    "TxRecord",
+    "detect_roast",
     "get_ai_service",
 ]

@@ -56,7 +56,10 @@ def build_providers(settings: Settings) -> list[LLMProvider]:
 
 
 def _roast_numbers(ctx: RoastContext) -> set[int]:
-    values = [ctx.amount, ctx.spent, ctx.budget, ctx.average_expense, *roast_facts(ctx).values()]
+    values = [
+        ctx.amount, ctx.spent, ctx.budget, ctx.average_expense, ctx.previous_spent, ctx.income,
+        *roast_facts(ctx).values(),
+    ]  # fmt: skip
     return {abs(v) for v in values if v is not None}
 
 

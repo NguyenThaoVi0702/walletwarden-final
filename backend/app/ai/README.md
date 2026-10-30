@@ -77,7 +77,16 @@ $env:WW_AI_PROVIDERS="local"          # hoặc "fake" nếu không bật llama-s
 uv run uvicorn app.ai.playground:app --port 8001
 ```
 
-Mở http://127.0.0.1:8001. Trang có 4 tab: cố vấn (chat, sửa được số liệu JSON), roast (thử cả 3 giọng một lúc), báo cáo tháng, nhập nhanh. Dữ liệu mẫu lấy từ bộ 30 case.
+Mở http://127.0.0.1:8001. Trang có 5 tab:
+- **Roast tự động:** gõ giao dịch như trên app, `detect_roast` tự quyết định có roast không. Có 10 kịch bản mẫu bấm một nút là chạy.
+- **Cố vấn:** chat, sửa được số liệu JSON.
+- **Roast thủ công:** thử cả 3 giọng một lúc.
+- **Báo cáo tháng.**
+- **Nhập nhanh.**
+
+Dữ liệu mẫu lấy từ bộ test.
+
+**Roast tự động** ([triggers.py](triggers.py)): bảng 10 trigger và thứ tự ưu tiên nằm trong [backend/README.md](../../README.md). Các ngưỡng (1,5× hôm qua, ly thứ 3, 8 khoản ≤ 60k…) là hằng số đầu file, chỉnh ở đó rồi chạy `uv run pytest tests/ai/test_triggers.py`.
 
 Trang gọi đúng `AIService` thật, nên prompt, bộ lọc, fallback và rate limit giống hệt app. Rate limit là 10 câu hỏi/phút; khi vượt, trang báo "Rate limit: thử lại sau … giây".
 

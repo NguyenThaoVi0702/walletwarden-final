@@ -32,6 +32,11 @@ def test_parse_amount(text: str, expected: int | None) -> None:
     assert parse_amount(text) == expected
 
 
+def test_roast_pronouns_are_softened() -> None:
+    text = check_roast("Mày tiêu 4 ngày liền, tao chịu.", set())
+    assert text == "Bạn tiêu 4 ngày liền, tôi chịu."
+
+
 def test_big_numbers() -> None:
     assert big_numbers("Chi 1.500.000đ, còn 25000 và 80%") == {1_500_000, 25_000}
 
@@ -67,3 +72,11 @@ def test_report_parses_json_inside_text() -> None:
     assert check_report(raw, {5_400_000})["headline"] == "Tháng ổn"
     with pytest.raises(OutputRejectedError):
         check_report('{"headline": "x"}', set())
+
+
+@pytest.mark.parametrize(
+    "text", ["Đây là tự sát tài chính.", "Nhịn đói một bữa đi.", "Bỏ bữa tối nay."]
+)
+def test_unsafe_roast_advice_is_rejected(text: str) -> None:
+    with pytest.raises(OutputRejectedError):
+        check_roast(text, set())

@@ -1,12 +1,45 @@
+{% set scope = "mục " ~ c.category if c.category else "cả tháng" %}
 {% if c.trigger == "budget_80" %}
-Sự kiện: ngân sách {{ "mục " ~ c.category if c.category else "cả tháng" }} vừa vượt mốc 80%.
+Sự kiện: ngân sách {{ scope }} vừa vượt mốc 80%.
 {% elif c.trigger == "budget_100" %}
-Sự kiện: ngân sách {{ "mục " ~ c.category if c.category else "cả tháng" }} vừa bị vượt (từ 100% trở lên).
-{% else %}
+Sự kiện: ngân sách {{ scope }} vừa bị vượt (từ 100% trở lên).
+{% elif c.trigger == "large_expense" %}
 Sự kiện: một khoản chi lớn bất thường{{ " cho mục " ~ c.category if c.category else "" }}.
+{% elif c.trigger == "daily_spike" %}
+Sự kiện: hôm nay chi cho mục {{ c.category }} nhiều hơn hẳn hôm qua, mà hôm qua cũng đã nhiều rồi.
+{% elif c.trigger == "repeat_today" %}
+Sự kiện: đây là lần thứ {{ c.count }} trong hôm nay người dùng chi cho mục {{ c.category }}.
+{% elif c.trigger == "small_habit" %}
+Sự kiện: tháng này đã có {{ c.count }} khoản nhỏ lặt vặt cho mục {{ c.category }}, cộng lại thành số tiền đáng kể.
+{% elif c.trigger == "spending_streak" %}
+Sự kiện: người dùng đã chi cho mục {{ c.category }} {{ c.count }} ngày liên tiếp.
+{% elif c.trigger == "payday_splurge" %}
+Sự kiện: lương mới về {{ c.count }} ngày mà đã tiêu một phần lớn.
+{% elif c.trigger == "over_income" %}
+Sự kiện: tổng chi tháng này vừa vượt quá thu nhập của tháng.
+{% elif c.trigger == "burn_rate" %}
+Sự kiện: chưa vượt ngân sách {{ scope }}, nhưng với tốc độ tiêu hiện tại sẽ hết tiền trước cuối tháng.
 {% endif %}
 - Khoản vừa chi: {{ c.amount | vnd }}
+{% if c.trigger == "daily_spike" %}
+- Hôm qua đã chi cho mục này: {{ c.previous_spent | vnd }}
+- Hôm nay đã chi cho mục này: {{ c.spent | vnd }} (nhiều hơn hôm qua {{ f.more_than_previous | vnd }}, tăng {{ f.pct_vs_previous }}%)
+{% elif c.trigger == "repeat_today" %}
+- Tổng hôm nay cho mục này: {{ c.spent | vnd }}
+{% elif c.trigger == "small_habit" %}
+- Tổng {{ c.count }} khoản nhỏ tháng này: {{ c.spent | vnd }}
+{% elif c.trigger == "spending_streak" %}
+- Tổng {{ c.count }} ngày vừa qua cho mục này: {{ c.spent | vnd }}
+{% elif c.trigger == "payday_splurge" %}
+- Lương vừa nhận: {{ c.income | vnd }}
+- Đã tiêu từ hôm nhận lương: {{ c.spent | vnd }} ({{ c.usage_pct | pct }} số lương)
+- Lương còn lại: {{ f.income_left | vnd }}
+{% elif c.trigger == "over_income" %}
+- Thu nhập tháng này: {{ c.income | vnd }}
+- Đã chi tháng này: {{ c.spent | vnd }} (vượt thu nhập {{ (-f.income_left) | vnd }})
+{% else %}
 - Đã chi trong phạm vi này tháng này: {{ c.spent | vnd }}
+{% endif %}
 {% if c.budget is not none %}
 - Ngân sách: {{ c.budget | vnd }} (đã dùng {{ c.usage_pct | pct }})
 {% if f.remaining is not none and f.remaining >= 0 %}
@@ -15,7 +48,10 @@ Sự kiện: một khoản chi lớn bất thường{{ " cho mục " ~ c.categor
 - Đã vượt: {{ (-f.remaining) | vnd }}
 {% endif %}
 {% endif %}
-{% if f.daily_allowance %}
+{% if c.days_until_empty is not none %}
+- Với tốc độ hiện tại, tiền sẽ hết sau khoảng {{ c.days_until_empty }} ngày nữa
+{% endif %}
+{% if f.daily_allowance and c.trigger in ("budget_80", "burn_rate") %}
 - Để không vượt, mỗi ngày chỉ nên chi tối đa: {{ f.daily_allowance | vnd }}
 {% endif %}
 {% if c.average_expense %}

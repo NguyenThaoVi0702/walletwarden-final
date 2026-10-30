@@ -12,11 +12,9 @@ from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 from app.ai.formatting import parse_amount, pct, vnd
 from app.ai.interface import AdviceRequest, CategorySummary, FinancialSummary, RoastContext
+from app.ai.triggers import FIXED_COST_CATEGORIES
 
 Message = dict[str, str]
-
-# Spending the model should not mock: paying rent or tuition is not a bad habit.
-FIXED_COST_CATEGORIES = frozenset({"Nhà ở", "Hóa đơn", "Giáo dục"})
 
 
 def roast_facts(ctx: RoastContext) -> dict[str, int | None]:
@@ -24,7 +22,15 @@ def roast_facts(ctx: RoastContext) -> dict[str, int | None]:
     remaining = ctx.budget - ctx.spent if ctx.budget is not None else None
     daily = remaining // ctx.days_left if remaining and remaining > 0 and ctx.days_left else None
     times_avg = round(ctx.amount / ctx.average_expense) if ctx.average_expense else None
-    return {"remaining": remaining, "daily_allowance": daily, "times_average": times_avg}
+    prev = ctx.previous_spent
+    return {
+        "remaining": remaining,
+        "daily_allowance": daily,
+        "times_average": times_avg,
+        "more_than_previous": ctx.spent - prev if prev else None,
+        "pct_vs_previous": round((ctx.spent - prev) * 100 / prev) if prev else None,
+        "income_left": ctx.income - ctx.spent if ctx.income is not None else None,
+    }
 
 
 @dataclass

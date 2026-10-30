@@ -13,9 +13,9 @@ DATA: dict[str, Any] = yaml.safe_load(
 )
 
 
-def test_thirty_unique_cases() -> None:
+def test_at_least_thirty_unique_cases() -> None:
     ids = [c["id"] for c in DATA["cases"]]
-    assert len(ids) == 30 and len(set(ids)) == 30
+    assert len(ids) >= 30 and len(set(ids)) == len(ids)
 
 
 @pytest.mark.parametrize("case", DATA["cases"], ids=lambda c: c["id"])

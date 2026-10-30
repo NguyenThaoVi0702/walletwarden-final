@@ -114,7 +114,9 @@ def test_rules_quick_entry(text: str, kind: str, category: str) -> None:
 
 
 @pytest.mark.parametrize("tone", list(Tone))
-@pytest.mark.parametrize("trigger", list(RoastTrigger))
+@pytest.mark.parametrize(
+    "trigger", [RoastTrigger.BUDGET_80, RoastTrigger.BUDGET_100, RoastTrigger.LARGE_EXPENSE]
+)  # the other triggers are covered with realistic contexts in test_triggers.py
 def test_rule_roasts_pass_their_own_checks(tone: Tone, trigger: RoastTrigger) -> None:
     ctx = RoastContext(
         trigger=trigger,

@@ -110,37 +110,50 @@ AI **không bao giờ tự tính**. Service của bạn tính hết rồi đưa 
 `app/services/summary.py`: `build_month_summary(session, user_id, month) -> FinancialSummary`:
 `income`, `expense`, `balance`, `total_budget`, `total_usage_pct = round(expense/total_budget*100)`, `categories[]` (spent, budget, usage_pct), `top_expenses` (5 khoản lớn nhất, **không gửi ghi chú** của người dùng), `previous_month_expense`, `change_vs_previous_pct`, `days_left`.
 
-`app/services/roast.py`: phát hiện trigger, viết thành hàm thuần (không DB) để unit test dễ:
+**Phát hiện roast: dùng `app.ai.detect_roast`, không cần tự viết** (Vi đã viết và test, file [app/ai/triggers.py](app/ai/triggers.py)). Đây là hàm thuần, không đụng DB. Nó nhận giao dịch mới, lịch sử 35 ngày và ngân sách, rồi trả về **tối đa 1** roast theo thứ tự ưu tiên:
 
-```python
-from app.ai import RoastTrigger
+| Ưu tiên | Trigger | Khi nào |
+|---|---|---|
+| 1 | `over_income` | tổng chi tháng vừa vượt tổng thu tháng |
+| 2 | `budget_100` | ngân sách danh mục hoặc cả tháng vừa vượt 100% |
+| 3 | `payday_splurge` | lương/thưởng về ≤ 3 ngày mà đã tiêu ≥ 40% |
+| 4 | `budget_80` | ngân sách vừa vượt 80% |
+| 5 | `daily_spike` | hôm nay chi ≥ 1,5× hôm qua (hôm qua ≥ 100k, hôm nay ≥ 200k) |
+| 6 | `large_expense` | khoản > 3× trung bình 30 khoản gần nhất (cần ≥ 5 khoản) |
+| 7 | `repeat_today` | lần thứ 3+ trong ngày cùng danh mục |
+| 8 | `small_habit` | 8, 16, 24… khoản ≤ 60k cùng danh mục trong tháng, tổng ≥ 300k |
+| 9 | `spending_streak` | Mua sắm/Giải trí 4+ ngày liên tiếp |
+| 10 | `burn_rate` | chưa tới 80% nhưng theo tốc độ hiện tại sẽ hết ngân sách sớm hơn cuối tháng ≥ 3 ngày |
 
-def detect_triggers(before_pct: int | None, after_pct: int | None,
-                    amount: int, avg_expense: int | None) -> list[RoastTrigger]:
-    """Thresholds from plan §3.5. Only fire when a threshold is *crossed* by this transaction."""
-    out: list[RoastTrigger] = []
-    if after_pct is not None and before_pct is not None:
-        if before_pct < 100 <= after_pct:
-            out.append(RoastTrigger.BUDGET_100)
-        elif before_pct < 80 <= after_pct:
-            out.append(RoastTrigger.BUDGET_80)
-    if avg_expense and amount > 3 * avg_expense:
-        out.append(RoastTrigger.LARGE_EXPENSE)
-    return out
-```
-
-Kiểm tra cho cả ngân sách **danh mục** (`category="Ăn uống"`) và ngân sách **cả tháng** (`category=None`). `avg_expense` = trung bình 30 khoản chi gần nhất, chỉ tính khi đã có ≥ 5 khoản. Mỗi giao dịch tạo tối đa 1 roast (ưu tiên 100% → 80% → khoản lớn) để không spam.
+Hàm không bao giờ roast khoản thu. Với Nhà ở, Hóa đơn, Giáo dục, Sức khỏe thì không roast thói quen hay chi tăng đột biến, chỉ cảnh báo ngân sách.
 
 Trong router `POST /api/transactions`:
 
 ```python
+from app.ai import AIService, TxRecord, detect_roast, get_ai_service
+
 async def create_tx(..., background: BackgroundTasks, ai: AIService = Depends(get_ai_service)):
-    tx = save(...)                                   # commit trước
-    ctx = build_roast_context(session, user, tx)     # RoastContext | None, None nếu không có trigger hoặc user tắt roast
-    if ctx:
-        background.add_task(run_roast, user.id, ctx, ai)   # run_roast: await ai.roast(...) rồi lưu vào ai_messages (session mới)
-    return {"transaction": tx, "roast_pending": ctx is not None}
+    tx = save(...)                                              # commit trước
+    cand = None
+    if user.roast_enabled:
+        def rec(t: Transaction) -> TxRecord:
+            return TxRecord(kind=t.kind, amount=t.amount, category=t.category.name, day=t.date)
+        new = rec(tx)
+        recent = [rec(t) for t in transactions_since(session, user.id, tx.date - timedelta(days=35))
+                  if t.id != tx.id] + [new]                     # lịch sử + giao dịch mới
+        cand = detect_roast(
+            new, recent,
+            budgets=category_budgets(session, user.id, month),  # {"Ăn uống": 2_500_000, ...}
+            total_budget=total_budget(session, user.id, month), # None nếu chưa đặt
+            tone=user.roast_tone,
+            fired=roast_keys_this_month(session, user.id),      # các key đã roast trong tháng
+        )
+    if cand:
+        background.add_task(run_roast, user.id, cand, ai)  # await ai.roast(user_id, cand.context), lưu text + cand.key vào ai_messages
+    return {"transaction": tx, "roast_pending": cand is not None}
 ```
+
+Bảng `ai_messages` cần thêm cột `roast_key` (TEXT, có index). `roast_keys_this_month` = các `roast_key` của user trong tháng hiện tại; nhờ đó cùng một tình huống không bị roast 2 lần.
 
 ## 6. Database
 
@@ -153,7 +166,7 @@ def _sqlite_pragmas(dbapi_conn, _):
     cur = dbapi_conn.cursor(); cur.execute("PRAGMA journal_mode=WAL"); cur.execute("PRAGMA foreign_keys=ON"); cur.close()
 ```
 
-- Bảng tối thiểu: `users` (email, password_hash, display_name, roast_enabled, roast_tone), `categories` (user_id, name, kind, icon, is_default), `transactions` (user_id, kind, amount INT, category_id, date, note), `budgets` (user_id, month, category_id NULL = tổng, limit), `ai_messages` (user_id, kind, trigger, tone, category, text, provider, read, reported, created_at).
+- Bảng tối thiểu: `users` (email, password_hash, display_name, roast_enabled, roast_tone), `categories` (user_id, name, kind, icon, is_default), `transactions` (user_id, kind, amount INT, category_id, date, note), `budgets` (user_id, month, category_id NULL = tổng, limit), `ai_messages` (user_id, kind, trigger, tone, category, text, provider, read, reported, roast_key, created_at).
 - Đăng ký xong thì tạo sẵn danh mục mặc định ở [INTEGRATION.md §1.3](../INTEGRATION.md) (bộ luật quick entry của AI dựa vào các tên này).
 - Alembic: `uv run alembic init alembic` → sửa `env.py` dùng `SQLModel.metadata` → `uv run alembic revision --autogenerate -m "init"` → `uv run alembic upgrade head`.
 
@@ -173,7 +186,7 @@ uv run pytest --cov=app --cov-report=term-missing
 uv run python -m app.export_openapi        # đổi API thì commit openapi.json
 ```
 
-Gợi ý fixture: SQLite in-memory + `TestClient`, override dependency `get_session`. Viết test cho `detect_triggers` với các mốc 79→80, 99→100, 70→105 (chỉ ra 100), khoản 3× và 3×+1.
+Gợi ý fixture: SQLite in-memory + `TestClient`, override dependency `get_session`. `detect_roast` đã có test của Vi (`tests/ai/test_triggers.py`); phần của bạn là test router: lưu giao dịch → `roast_pending` đúng, tắt Roast Mode → không roast, cùng tình huống lần 2 → không roast (nhờ `roast_key`).
 
 ## 9. Ngày tích hợp
 

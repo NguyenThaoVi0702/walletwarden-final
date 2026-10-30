@@ -20,8 +20,15 @@ _BANNED = [
     r"\bngu\b", r"đồ ngu", r"óc chó", r"đần", r"khốn nạn", r"mẹ mày", r"bố mày", r"cha mày",
     r"con mẹ", r"thằng", r"xấu xí", r"\bmập\b", r"\bbéo\b", r"địt", r"\bđụ\b", r"vãi l",
     r"fuck", r"stupid", r"idiot", r"\bdumb\b",
+    # Harsh roasts must stay safe: no self-harm talk, no advice to skip meals.
+    r"tự sát", r"tự tử", r"chết đi", r"nhịn đói", r"nhịn ăn", r"bỏ bữa", r"khẩu phần",
 ]  # fmt: skip
 _BANNED_RE = re.compile("|".join(_BANNED), re.IGNORECASE)
+# The prompt asks for "bạn"; small models still slip into "mày/tao" when told to be harsh.
+_PRONOUNS = [
+    (re.compile(rf"\b{word}\b"), polite)
+    for word, polite in [("mày", "bạn"), ("Mày", "Bạn"), ("tao", "tôi"), ("Tao", "Tôi")]
+]
 _THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
 # A sentence ends at . ! ? … followed by whitespace, so "1.200.000đ" stays in one piece.
 _SENTENCE_END_RE = re.compile(r"(?<=[.!?…])[\"'”)]*\s+")
@@ -57,6 +64,8 @@ def sentences(text: str) -> list[str]:
 
 def check_roast(text: str, allowed_numbers: set[int]) -> str:
     text = _check_common(text, max_chars=600)
+    for pattern, polite in _PRONOUNS:
+        text = pattern.sub(polite, text)
     _check_numbers(text, allowed_numbers)
     parts = sentences(text)
     if len(parts) > 3:

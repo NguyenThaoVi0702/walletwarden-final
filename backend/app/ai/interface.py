@@ -24,9 +24,18 @@ class Tone(StrEnum):
 
 
 class RoastTrigger(StrEnum):
-    BUDGET_80 = "budget_80"
-    BUDGET_100 = "budget_100"
-    LARGE_EXPENSE = "large_expense"
+    """Situations worth a roast. `app.ai.detect_roast` decides which one fires."""
+
+    BUDGET_80 = "budget_80"  # a budget just crossed 80%
+    BUDGET_100 = "budget_100"  # a budget just crossed 100%
+    LARGE_EXPENSE = "large_expense"  # one expense > 3x the user's average
+    DAILY_SPIKE = "daily_spike"  # today's spend in a category well above yesterday's
+    REPEAT_TODAY = "repeat_today"  # 3rd+ purchase in the same category today
+    SMALL_HABIT = "small_habit"  # many small purchases adding up this month
+    SPENDING_STREAK = "spending_streak"  # same fun category N days in a row
+    PAYDAY_SPLURGE = "payday_splurge"  # big chunk of the salary gone days after payday
+    OVER_INCOME = "over_income"  # this month's spending just passed this month's income
+    BURN_RATE = "burn_rate"  # at this pace the budget runs out before month end
 
 
 class CategorySummary(BaseModel):
@@ -85,6 +94,41 @@ class RoastContext(BaseModel):
         default=None, gt=0, description="User's average single expense; set for large_expense"
     )
     days_left: int = Field(ge=0, le=31)
+    previous_spent: int | None = Field(
+        default=None, ge=0, description="daily_spike: yesterday's spend in the same category"
+    )
+    count: int | None = Field(
+        default=None,
+        ge=0,
+        description="repeat_today: purchases today; small_habit: small purchases this month; "
+        "spending_streak: days in a row; payday_splurge: days since payday",
+    )
+    income: int | None = Field(
+        default=None, ge=0, description="payday_splurge: the salary; over_income: month income"
+    )
+    days_until_empty: int | None = Field(
+        default=None, ge=0, description="burn_rate: days until the budget is gone at this pace"
+    )
+
+
+class TxRecord(BaseModel):
+    """One transaction as `detect_roast` needs it (no notes, no ids)."""
+
+    kind: Literal["expense", "income"]
+    amount: int = Field(gt=0)
+    category: str
+    day: date
+
+
+class RoastCandidate(BaseModel):
+    """What `detect_roast` returns: the roast to write, plus a key for de-duplication.
+
+    Store `key` with the alert; pass the keys already used this month back as `fired`
+    so the same situation is not roasted twice.
+    """
+
+    key: str
+    context: RoastContext
 
 
 class AIReply(BaseModel):

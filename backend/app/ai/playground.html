@@ -62,14 +62,38 @@
   <span id="health">đang kiểm tra model…</span>
 </header>
 <nav>
-  <button data-tab="advice" class="on">Cố vấn (F6)</button>
-  <button data-tab="roast">Roast (F7)</button>
+  <button data-tab="auto" class="on">Roast tự động</button>
+  <button data-tab="advice">Cố vấn (F6)</button>
+  <button data-tab="roast">Roast thủ công (F7)</button>
   <button data-tab="report">Báo cáo tháng (F8)</button>
   <button data-tab="entry">Nhập nhanh (F9)</button>
 </nav>
 <main>
+  <!-- AUTO ROAST -->
+  <section id="auto" class="on">
+    <div>
+      <label>Kịch bản đáng bị chửi (bấm để chạy)</label>
+      <div class="chips" id="au-scenarios"></div>
+      <div class="row">
+        <div><label>Giọng</label>
+          <select id="au-tone"><option value="savage">savage – cà khịa cực gắt</option><option value="honest">honest – thẳng thắn</option><option value="gentle">gentle – nhẹ nhàng</option></select></div>
+        <div><label>Ngày giao dịch</label><input id="au-day" type="date" value="2026-11-14"></div>
+        <div><label>Ngân sách tổng tháng (đ)</label><input id="au-total" type="number" value="6000000"></div>
+        <div><label>Danh mục (trống = AI tự chọn)</label><select id="au-cat"><option value="">— AI tự chọn —</option></select></div>
+      </div>
+      <label>Ngân sách theo danh mục (JSON)</label>
+      <input id="au-budgets" value='{"Ăn uống": 2500000, "Mua sắm": 1500000, "Giải trí": 800000}'>
+      <label>Gõ giao dịch như trên điện thoại</label>
+      <input id="au-text" placeholder="ăn lẩu 250k">
+      <button class="btn" id="au-send">Lưu giao dịch</button><button class="btn ghost" id="au-reset">Xoá lịch sử</button>
+      <label>Lịch sử giao dịch (35 ngày)</label>
+      <div id="au-history" class="hint">Chưa có giao dịch.</div>
+    </div>
+    <div><label>Thông báo roast</label><div id="au-out" class="chat"><div class="hint">Lưu giao dịch, hệ thống tự quyết định có chửi không.</div></div></div>
+  </section>
+
   <!-- ADVICE -->
-  <section id="advice" class="on">
+  <section id="advice">
     <div>
       <label>Hồ sơ số liệu (từ bộ test, sửa JSON thoải mái)</label>
       <select id="adv-preset"></select>
@@ -253,7 +277,69 @@ $("en-send").onclick = () => busy($("en-send"), async () => {
 });
 $("en-text").onkeydown = (e) => { if (e.key === "Enter") $("en-send").click(); };
 
-health(); init();
+// ---- auto roast
+let txs = [], fired = [];
+const TRIGGER_VI = {
+  budget_80: "Vượt 80% ngân sách", budget_100: "Vượt 100% ngân sách", large_expense: "Khoản chi lớn bất thường",
+  daily_spike: "Hôm nay tiêu hơn hẳn hôm qua", repeat_today: "Mua lần thứ 3+ trong ngày", small_habit: "Tiền lặt vặt cộng dồn",
+  spending_streak: "Tiêu nhiều ngày liên tiếp", payday_splurge: "Lương về là tiêu", over_income: "Chi vượt thu nhập",
+  burn_rate: "Tốc độ này sẽ cháy túi trước cuối tháng",
+};
+const shift = (iso, d) => { const x = new Date(iso + "T00:00:00Z"); x.setUTCDate(x.getUTCDate() + d); return x.toISOString().slice(0, 10); };
+const T = (amount, category, ago, kind = "expense") => ({ kind, amount, category, day: shift($("au-day").value, -ago) });
+// Each scenario: earlier transactions, then the one the user "types" that should trigger the roast.
+const SCENARIOS = [
+  { name: "Hôm qua ăn 300k, hôm nay 500k", seed: () => [T(300000, "Ăn uống", 1), T(250000, "Ăn uống", 0)], text: "lẩu tối 250k", cat: "Ăn uống" },
+  { name: "Ly trà sữa thứ 3 trong ngày", seed: () => [T(45000, "Ăn uống", 0), T(50000, "Ăn uống", 0)], text: "trà sữa 45k", cat: "Ăn uống" },
+  { name: "Lương về 2 ngày đã bay 43%", seed: () => [T(10000000, "Lương", 2, "income"), T(2800000, "Mua sắm", 1)], text: "mua giày 1tr5", cat: "Mua sắm" },
+  { name: "Mua sắm 4 ngày liền", seed: () => [1, 2, 3].map((d) => T(150000, "Mua sắm", d)), text: "áo thun 150k", cat: "Mua sắm" },
+  { name: "8 ly cà phê lặt vặt", seed: () => [1, 2, 3, 4, 5, 6, 7].map((d) => T(45000, "Ăn uống", d)), text: "cà phê 45k", cat: "Ăn uống" },
+  { name: "Chi vượt cả thu nhập", seed: () => [T(4000000, "Lương", 13, "income"), T(3900000, "Mua sắm", 5)], text: "ăn tối 200k", cat: "Ăn uống" },
+  { name: "Ngân sách ăn uống chạm 80%", seed: () => [T(1900000, "Ăn uống", 3)], text: "nhà hàng 150k", cat: "Ăn uống" },
+  { name: "Giải trí vượt 100%", seed: () => [T(700000, "Giải trí", 4)], text: "vé concert 350k", cat: "Giải trí" },
+  { name: "Tốc độ đốt tiền", seed: () => [T(3400000, "Khác", 5)], text: "linh tinh 100k", cat: "Khác" },
+  { name: "Khoản lớn bất thường", seed: () => [1, 2, 3, 4, 5].map((d) => T(80000, "Ăn uống", d)), text: "tai nghe 900k", cat: "Mua sắm" },
+];
+
+function renderHistory() {
+  if (!txs.length) { $("au-history").innerHTML = "Chưa có giao dịch."; return; }
+  $("au-history").innerHTML = [...txs].sort((a, b) => a.day.localeCompare(b.day)).map((t) =>
+    `${t.day.slice(8)}/${t.day.slice(5, 7)} · ${t.kind === "income" ? "Thu" : "Chi"} ${vnd(t.amount)} · ${esc(t.category)}`).join("<br>");
+}
+async function saveTx(text, cat) {
+  const box = $("au-out");
+  bubble(box, "user", esc(text) + (cat ? ` <span class="meta">(${esc(cat)})</span>` : ""));
+  try {
+    const r = await call("/simulate", {
+      text, day: $("au-day").value, tone: $("au-tone").value, category: cat || null, history: txs,
+      budgets: JSON.parse($("au-budgets").value || "{}"), total_budget: Number($("au-total").value) || null, fired,
+    });
+    txs.push(r.tx); renderHistory();
+    if (r.roast) {
+      fired.push(r.key);
+      bubble(box, "ai", `<b>🔔 ${TRIGGER_VI[r.trigger] ?? r.trigger}</b>\n` + esc(r.roast.text) + meta(r.roast));
+    } else {
+      bubble(box, "ai", `<span class="meta">Đã lưu ${vnd(r.tx.amount)} · ${esc(r.tx.category)}. Không có gì đáng chửi.</span>`);
+    }
+  } catch (e) { errBox(box, e); }
+}
+$("au-send").onclick = () => busy($("au-send"), async () => {
+  const t = $("au-text").value.trim(); if (!t) return; $("au-text").value = ""; await saveTx(t, $("au-cat").value);
+});
+$("au-text").onkeydown = (e) => { if (e.key === "Enter") $("au-send").click(); };
+$("au-reset").onclick = () => { txs = []; fired = []; renderHistory(); $("au-out").innerHTML = '<div class="hint">Đã xoá lịch sử.</div>'; };
+function initAuto() {
+  $("au-cat").innerHTML += P.categories.map((c) => `<option>${c}</option>`).join("");
+  $("au-scenarios").innerHTML = SCENARIOS.map((s, i) => `<button data-i="${i}">${s.name}</button>`).join("");
+  $("au-scenarios").querySelectorAll("button").forEach((b) => b.onclick = () => busy(b, async () => {
+    const s = SCENARIOS[b.dataset.i];
+    txs = s.seed(); fired = []; renderHistory();
+    $("au-out").innerHTML = `<div class="hint">Kịch bản: ${s.name}. Đã nạp ${txs.length} giao dịch trước đó.</div>`;
+    await saveTx(s.text, s.cat);
+  }));
+}
+
+health(); init().then(initAuto);
 </script>
 </body>
 </html>

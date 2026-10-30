@@ -16,6 +16,7 @@ from app.ai.interface import (
     RoastTrigger,
     Tone,
 )
+from app.ai.prompts import roast_facts
 
 
 def _pick(options: list[str], seed: str) -> str:
@@ -30,66 +31,121 @@ def _scope(ctx: RoastContext) -> str:
 
 # ---------------------------------------------------------------- roast
 
+T = RoastTrigger
 _OPENERS: dict[Tone, dict[RoastTrigger, list[str]]] = {
     Tone.GENTLE: {
-        RoastTrigger.BUDGET_80: [
+        T.BUDGET_80: [
             "Nhẹ nhàng nhắc bạn: {scope} đã dùng {usage} rồi đó.",
             "Bạn ơi, {scope} đã chạm mốc {usage}, mình chậm lại chút nhé.",
         ],
-        RoastTrigger.BUDGET_100: [
+        T.BUDGET_100: [
             "{scope} đã vượt hạn mức ({usage}), không sao, mình cùng điều chỉnh nhé.",
             "Hạn mức của {scope} đã hết ({usage}), còn {days} ngày nữa mới sang tháng mới.",
         ],
-        RoastTrigger.LARGE_EXPENSE: [
-            "Khoản {amount} này lớn hơn hẳn mức chi thường ngày ({avg}) của bạn.",
+        T.LARGE_EXPENSE: ["Khoản {amount} này lớn hơn hẳn mức chi thường ngày ({avg}) của bạn."],
+        T.DAILY_SPIKE: ["Hôm nay {scope} đã {spent}, nhiều hơn hôm qua ({prev}) đó bạn."],
+        T.REPEAT_TODAY: ["Đây là lần thứ {count} hôm nay bạn chi cho {scope} rồi, tổng {spent}."],
+        T.SMALL_HABIT: ["{count} khoản nhỏ cho {scope} tháng này đã cộng lại thành {spent}."],
+        T.SPENDING_STREAK: ["Bạn đã chi cho {scope} {count} ngày liên tiếp, tổng {spent}."],
+        T.PAYDAY_SPLURGE: ["Lương {income} mới về {count} ngày mà đã chi {spent} ({usage}) rồi."],
+        T.OVER_INCOME: ["Tháng này bạn đã chi {spent}, nhiều hơn thu nhập {income} rồi đó."],
+        T.BURN_RATE: [
+            "Với tốc độ hiện tại, {scope} sẽ hết trong khoảng {until_empty} ngày nữa, "
+            "trong khi tháng còn {days} ngày."
         ],
     },
     Tone.HONEST: {
-        RoastTrigger.BUDGET_80: [
+        T.BUDGET_80: [
             "Nói thẳng nhé: {scope} đã tiêu {spent}/{budget}, tức {usage}, mà còn {days} ngày.",
             "{scope} đã ăn mất {usage} ngân sách. Tốc độ này là hết tiền trước cuối tháng.",
         ],
-        RoastTrigger.BUDGET_100: [
+        T.BUDGET_100: [
             "{scope} đã vượt ngân sách: {spent} trên mức {budget}.",
             "Hết ngân sách {scope} rồi ({usage}), và tháng vẫn còn {days} ngày.",
         ],
-        RoastTrigger.LARGE_EXPENSE: [
-            "Một lần chi {amount}, gấp mấy lần mức trung bình {avg} của bạn.",
+        T.LARGE_EXPENSE: ["Một lần chi {amount}, gấp mấy lần mức trung bình {avg} của bạn."],
+        T.DAILY_SPIKE: [
+            "Hôm qua {scope} {prev}, hôm nay {spent}: tăng {pct_prev} chỉ sau một ngày."
+        ],
+        T.REPEAT_TODAY: ["Lần thứ {count} trong ngày cho {scope}, tổng {spent}. Đây là thói quen."],
+        T.SMALL_HABIT: ["{count} khoản lặt vặt cho {scope}, cộng lại {spent}. Tiền nhỏ, lỗ to."],
+        T.SPENDING_STREAK: ["{count} ngày liền chi cho {scope}, tổng {spent}. Không có ngày nghỉ."],
+        T.PAYDAY_SPLURGE: ["Lương {income} về {count} ngày, đã đi {spent}, tức {usage}."],
+        T.OVER_INCOME: [
+            "Chi {spent} trong khi thu {income}: tháng này bạn đang tiêu tiền không có."
+        ],
+        T.BURN_RATE: [
+            "Tiêu kiểu này thì {scope} cạn sau {until_empty} ngày, còn tháng thì {days} ngày nữa."
         ],
     },
     Tone.SAVAGE: {
-        RoastTrigger.BUDGET_80: [
+        T.BUDGET_80: [
             "Chúc mừng, {scope} đã cán mốc {usage} nhanh hơn cả tốc độ bạn kiếm tiền.",
             "{usage} ngân sách {scope} đã bay màu, ví bạn đang thở bằng oxy.",
         ],
-        RoastTrigger.BUDGET_100: [
+        T.BUDGET_100: [
             "{scope} vượt ngân sách rồi: {spent} trên {budget}. Ngân sách chỉ là gợi ý với bạn à?",
-            "Ví bạn vừa gửi đơn xin nghỉ việc: {scope} đã tiêu {usage} hạn mức.",
+            "Ví bạn vừa nộp đơn nghỉ việc: {scope} đã tiêu {usage} hạn mức.",
         ],
-        RoastTrigger.LARGE_EXPENSE: [
+        T.LARGE_EXPENSE: [
             "{amount} một phát? Ví bạn vừa thấy cả cuộc đời lướt qua trước mắt.",
+            "Bình thường bạn chi {avg}, giờ quất luôn {amount}. Đại gia ẩn danh lộ diện.",
+        ],
+        T.DAILY_SPIKE: [
+            "Hôm qua {prev} còn chưa đủ, hôm nay {scope} lên luôn {spent}. "
+            "Bạn đang tiêu hay đang mở tiệc?",
+            "{prev} hôm qua, {spent} hôm nay: {scope} của bạn tăng trưởng nhanh hơn GDP.",
+        ],
+        T.REPEAT_TODAY: [
+            "Lần thứ {count} hôm nay rồi đấy, {spent} cho {scope}. "
+            "Bạn không mua nữa, bạn đang tích trữ.",
+        ],
+        T.SMALL_HABIT: [
+            '{count} lần "có mấy chục thôi mà" cho {scope}, giờ thành {spent}. Mấy chục thôi mà.',
+        ],
+        T.SPENDING_STREAK: [
+            "{count} ngày liên tiếp quẹt thẻ cho {scope}, tổng {spent}. "
+            "Shipper sắp nhận bạn làm người nhà.",
+        ],
+        T.PAYDAY_SPLURGE: [
+            "Lương {income} chưa kịp ấm ví, {count} ngày đã bay {spent}. "
+            "Đây là lương hay tiền lì xì?",
+        ],
+        T.OVER_INCOME: [
+            "Kiếm {income}, tiêu {spent}. Toán lớp 1 cũng biết ví bạn đang âm.",
+        ],
+        T.BURN_RATE: [
+            "Với phong độ này, {scope} sẽ chết sau {until_empty} ngày, "
+            "tháng còn {days} ngày để bạn ăn mì.",
         ],
     },
 }
 
 _TIPS: dict[RoastTrigger, list[str]] = {
-    RoastTrigger.BUDGET_80: [
+    T.BUDGET_80: [
         "Thử đặt giới hạn {daily} mỗi ngày cho {days} ngày còn lại.",
         "Tuần này hãy hoãn các khoản không cần thiết trong {scope}.",
     ],
-    RoastTrigger.BUDGET_100: [
+    T.BUDGET_100: [
         "Từ giờ đến cuối tháng, chỉ chi {scope} khi thật sự cần và ghi lại từng khoản.",
         "Xem lại các khoản lớn nhất trong {scope} và cắt bớt một khoản ngay hôm nay.",
     ],
-    RoastTrigger.LARGE_EXPENSE: [
-        "Lần sau với khoản lớn, hãy đợi 24 giờ rồi mới quyết định mua.",
+    T.LARGE_EXPENSE: ["Lần sau với khoản lớn, hãy đợi 24 giờ rồi mới quyết định mua."],
+    T.DAILY_SPIKE: ["Ngày mai cho {scope} một ngày nghỉ: nấu ở nhà hoặc mang cơm theo."],
+    T.REPEAT_TODAY: ["Hôm nay dừng ở đây, lần mua tiếp theo để dành cho tuần sau."],
+    T.SMALL_HABIT: ["Tuần này cắt một nửa số lần mua lặt vặt cho {scope}."],
+    T.SPENDING_STREAK: ["Ngày mai là ngày không chi tiêu cho {scope}, xoá giỏ hàng đi."],
+    T.PAYDAY_SPLURGE: [
+        "Chuyển ngay một phần lương còn lại sang tài khoản tiết kiệm trước khi tiêu tiếp."
     ],
+    T.OVER_INCOME: ["Từ giờ đến cuối tháng chỉ chi cho ăn uống thiết yếu và đi lại."],
+    T.BURN_RATE: ["Giảm chi mỗi ngày cho {scope} ngay từ hôm nay để kéo dài đến cuối tháng."],
 }
 
 
 def roast(ctx: RoastContext) -> str:
-    remaining = (ctx.budget - ctx.spent) if ctx.budget is not None else None
-    daily = remaining // ctx.days_left if remaining and remaining > 0 and ctx.days_left else None
+    f = roast_facts(ctx)
+    daily = f["daily_allowance"]
     fields = {
         "scope": _scope(ctx),
         "usage": pct(ctx.usage_pct),
@@ -99,6 +155,11 @@ def roast(ctx: RoastContext) -> str:
         "avg": vnd(ctx.average_expense),
         "days": ctx.days_left,
         "daily": vnd(daily) if daily else "thật chặt",
+        "prev": vnd(ctx.previous_spent),
+        "pct_prev": pct(f["pct_vs_previous"]),
+        "count": ctx.count,
+        "income": vnd(ctx.income),
+        "until_empty": ctx.days_until_empty,
     }
     seed = f"{ctx.trigger}{ctx.tone}{ctx.category}{ctx.amount}"
     opener = _pick(_OPENERS[ctx.tone][ctx.trigger], seed).format(**fields)
