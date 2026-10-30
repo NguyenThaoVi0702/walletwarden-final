@@ -62,6 +62,7 @@ async def main() -> None:
                 model=settings.llama_model,
                 messages=messages,
                 max_tokens=160,  # type: ignore[arg-type]
+                extra_body={"chat_template_kwargs": {"enable_thinking": False}},
             )
         )
         .choices[0]
@@ -71,15 +72,18 @@ async def main() -> None:
     for n in args.concurrency:
         latencies: list[float] = []
         tps: list[float] = []
+        tokens: list[int] = []
         for _ in range(args.rounds):
             results = await asyncio.gather(
                 *(one(client, settings.llama_model, messages) for _ in range(n))
             )
             latencies += [t for t, _ in results]
             tps += [tok / t for t, tok in results if t > 0]
+            tokens += [tok for _, tok in results]
         print(
             f"{n} user(s): median {statistics.median(latencies):.2f}s, "
-            f"slowest {max(latencies):.2f}s, {statistics.mean(tps):.1f} tok/s per user"
+            f"slowest {max(latencies):.2f}s, {statistics.mean(tps):.1f} tok/s per user, "
+            f"{statistics.mean(tokens):.0f} tokens per reply"
         )
 
 
