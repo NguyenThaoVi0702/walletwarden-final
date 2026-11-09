@@ -1,6 +1,6 @@
 [project]
 name = "walletwarden-backend"
-version = "0.0.1"
+version = "1.0.0"
 description = "WalletWarden API, domain services and AI module"
 requires-python = ">=3.12,<3.13"
 dependencies = [

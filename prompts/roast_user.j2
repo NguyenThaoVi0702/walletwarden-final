@@ -31,7 +31,7 @@ Sự kiện: chưa vượt ngân sách {{ scope }}, nhưng với tốc độ ti�
 {% elif c.trigger == "daily_spike" %}
 {% set point = "hôm qua " ~ (c.previous_spent | vnd) ~ ", hôm nay " ~ (c.spent | vnd) %}
 {% elif c.trigger == "repeat_today" %}
-{% set point = "lần thứ " ~ c.count ~ " trong hôm nay" %}
+{% set point = "lần thứ " ~ c.count ~ " chi cho mục " ~ c.category ~ " trong hôm nay" %}
 {% elif c.trigger == "small_habit" %}
 {% set point = c.count ~ " khoản lặt vặt cộng lại " ~ (c.spent | vnd) %}
 {% elif c.trigger == "spending_streak" %}
@@ -43,16 +43,16 @@ Sự kiện: chưa vượt ngân sách {{ scope }}, nhưng với tốc độ ti�
 {% endif %}
 Ý CHÍNH PHẢI NÓI trong câu 1: {{ point }}.
 - Món vừa mua: {{ c.item if c.item else "không rõ (đừng đoán)" }}
-- Khoản vừa chi: {{ c.amount | vnd }}
+- Giá của RIÊNG món vừa mua: {{ c.amount | vnd }}{{ " (con số duy nhất được viết cạnh tên món)" if c.item else "" }}
 {% if c.trigger == "daily_spike" %}
-- Hôm qua đã chi cho mục này: {{ c.previous_spent | vnd }}
-- Hôm nay đã chi cho mục này: {{ c.spent | vnd }} (nhiều hơn hôm qua {{ f.more_than_previous | vnd }}, tăng {{ f.pct_vs_previous }}%)
+- Hôm qua đã chi cho cả mục {{ c.category }}: {{ c.previous_spent | vnd }}
+- Hôm nay đã chi cho cả mục {{ c.category }} (cộng mọi khoản, không phải giá món vừa mua): {{ c.spent | vnd }} (nhiều hơn hôm qua {{ f.more_than_previous | vnd }}, tăng {{ f.pct_vs_previous }}%)
 {% elif c.trigger == "repeat_today" %}
-- Tổng hôm nay cho mục này: {{ c.spent | vnd }}
+- Tổng {{ c.count }} khoản hôm nay của cả mục {{ c.category }} (KHÔNG phải giá món vừa mua): {{ c.spent | vnd }}
 {% elif c.trigger == "small_habit" %}
-- Tổng {{ c.count }} khoản nhỏ tháng này: {{ c.spent | vnd }}
+- Tổng {{ c.count }} khoản nhỏ tháng này của cả mục {{ c.category }} (không phải giá món vừa mua): {{ c.spent | vnd }}
 {% elif c.trigger == "spending_streak" %}
-- Tổng {{ c.count }} ngày vừa qua cho mục này: {{ c.spent | vnd }}
+- Tổng {{ c.count }} ngày vừa qua của cả mục {{ c.category }} (không phải giá món vừa mua): {{ c.spent | vnd }}
 {% elif c.trigger == "payday_splurge" %}
 - Lương vừa nhận: {{ c.income | vnd }}
 - Đã tiêu từ hôm nhận lương: {{ c.spent | vnd }} ({{ c.usage_pct | pct }} số lương)
@@ -61,7 +61,7 @@ Sự kiện: chưa vượt ngân sách {{ scope }}, nhưng với tốc độ ti�
 - Thu nhập tháng này: {{ c.income | vnd }}
 - Đã chi tháng này: {{ c.spent | vnd }} (vượt thu nhập {{ (-f.income_left) | vnd }})
 {% else %}
-- Đã chi trong phạm vi này tháng này: {{ c.spent | vnd }}
+- Đã chi cho cả {{ scope }} tháng này (không phải giá món vừa mua): {{ c.spent | vnd }}
 {% endif %}
 {% if c.budget is not none %}
 - Ngân sách: {{ c.budget | vnd }} (đã dùng {{ c.usage_pct | pct }})

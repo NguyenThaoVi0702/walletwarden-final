@@ -2,6 +2,7 @@
 
 from functools import lru_cache
 
+from app.ai.entry import entry_day, is_entry_statement
 from app.ai.interface import (
     AdviceRequest,
     AIRateLimitError,
@@ -47,5 +48,7 @@ __all__ = [
     "Tone",
     "TxRecord",
     "detect_roast",
+    "entry_day",
+    "is_entry_statement",
     "get_ai_service",
 ]

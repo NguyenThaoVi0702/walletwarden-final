@@ -115,3 +115,13 @@ def test_parse_money_slang(text: str, expected: int) -> None:
 def test_notes_drop_slang_amounts() -> None:
     assert strip_amounts("trà sữa 5 xị") == "trà sữa"
     assert strip_amounts("2 chai bia 50k") == "bia"
+
+
+def test_roast_rejects_a_total_glued_to_the_item() -> None:
+    allowed = {50_000, 550_000}
+    with pytest.raises(OutputRejectedError):
+        check_roast("Lần thứ 3 hôm nay rồi, 550.000đ cho bánh cuốn.", allowed, "bánh cuốn", 50_000)
+    with pytest.raises(OutputRejectedError):
+        check_roast("Bánh cuốn 550.000đ, ăn gì mà sang.", allowed, "bánh cuốn", 50_000)
+    ok = "Bánh cuốn 50.000đ, tiền ăn uống hôm nay đã lên 550.000đ. Dừng ở đây."
+    assert check_roast(ok, allowed, "bánh cuốn", 50_000) == ok

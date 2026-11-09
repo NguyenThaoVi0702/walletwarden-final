@@ -151,7 +151,7 @@ class DefaultAIService:
             self._prompts.roast(context),
             max_tokens=100,  # 1-2 short sentences; long roasts read worse
             temperature=0.7,  # 0.9 made a 9B model's savage roasts drift into nonsense
-            check=lambda raw: check_roast(raw, allowed),
+            check=lambda raw: check_roast(raw, allowed, context.item, context.amount),
             fallback=lambda: rules.roast(context),
         )
         return AIReply(text=text, provider=provider, fallback=fb, latency_ms=ms)

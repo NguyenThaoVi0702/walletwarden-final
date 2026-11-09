@@ -202,6 +202,7 @@ def test_roast_item_drops_the_leading_verb(note: str, item: str | None) -> None:
 
 def test_roast_examples_only_use_their_own_numbers(settings: Settings) -> None:
     from app.ai.formatting import big_numbers
+    from app.ai.guard import check_roast
     from app.ai.prompts import roast_examples
 
     examples = roast_examples(settings.prompts_dir)
@@ -209,6 +210,7 @@ def test_roast_examples_only_use_their_own_numbers(settings: Settings) -> None:
     for tone_examples in examples.values():
         for e in tone_examples:
             assert big_numbers(e.reply) <= _roast_numbers(e.context), e.reply
+            check_roast(e.reply, _roast_numbers(e.context), e.context.item, e.context.amount)
 
 
 def test_roast_prompt_puts_same_trigger_example_first(settings: Settings) -> None:

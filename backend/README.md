@@ -25,6 +25,7 @@ Không sửa: `app/ai/` (Vi), `app/config.py` (dùng chung; thêm biến thì b�
 ```powershell
 cd backend
 uv sync                      # cài Python 3.12 + mọi thư viện theo uv.lock
+uv run alembic upgrade head  # tạo/cập nhật SQLite schema
 uv run pytest                # phải xanh
 uv run uvicorn app.main:app --reload --port 8000
 ```
@@ -51,6 +52,22 @@ Thêm thư viện: `uv add <tên>` (hoặc `uv add --dev <tên>`), commit cả `
 2. Viết router stub trả dữ liệu mẫu, khai báo `response_model` đầy đủ, để OpenAPI có đủ type cho Tùng.
 3. `uv run python -m app.export_openapi` → commit `openapi.json`.
 4. Từ 31/10, mọi thay đổi `app/schemas/**` hoặc `openapi.json` cần label `contract-approved` (CI kiểm tra).
+
+Backend hiện thực các route trong [INTEGRATION.md §1.2](../INTEGRATION.md): auth/JWT,
+settings, categories, transactions, budgets, dashboard, AI chat/alerts/report/parse và CSV export.
+Các truy vấn nghiệp vụ luôn giới hạn theo user trong token. Đăng ký tạo 12 danh mục mặc định;
+chi tiêu có thể xếp roast vào background task, lưu alert và khử trùng lặp theo `roast_key`.
+Tham khảo hướng dẫn riêng [API_README.md](./API_README.md) để xem mọi endpoint, tham số và ví dụ gọi.
+Sơ đồ class, component, ERD, object, sequence và flowchart có mã Mermaid sẵn để
+import vào Draw.io ở [ARCHITECTURE_DIAGRAMS.md](./ARCHITECTURE_DIAGRAMS.md).
+
+Các thành phần chính:
+
+- `app/db.py`, `app/models.py`, `alembic/`: SQLite WAL, SQLModel tables và migration.
+- `app/security.py`, `app/api/auth.py`: Argon2, JWT và giới hạn đăng nhập theo IP.
+- `app/services/summary.py`, `app/services/budgets.py`: tổng hợp số liệu từ giao dịch; AI chỉ tạo lời diễn đạt.
+- `app/api/`: router cho toàn bộ endpoint hợp đồng.
+- `tests/test_api.py`: kiểm tra luồng end-to-end, phân quyền và roast; `tests/ai/` giữ test của Vi.
 
 Với endpoint AI, **dùng lại model của Vi** làm `response_model` để Tùng có type giống hệt:
 
@@ -168,7 +185,7 @@ def _sqlite_pragmas(dbapi_conn, _):
 
 - Bảng tối thiểu: `users` (email, password_hash, display_name, roast_enabled, roast_tone), `categories` (user_id, name, kind, icon, is_default), `transactions` (user_id, kind, amount INT, category_id, date, note), `budgets` (user_id, month, category_id NULL = tổng, limit), `ai_messages` (user_id, kind, trigger, tone, category, text, provider, read, reported, roast_key, created_at).
 - Đăng ký xong thì tạo sẵn danh mục mặc định ở [INTEGRATION.md §1.3](../INTEGRATION.md) (bộ luật quick entry của AI dựa vào các tên này).
-- Alembic: `uv run alembic init alembic` → sửa `env.py` dùng `SQLModel.metadata` → `uv run alembic revision --autogenerate -m "init"` → `uv run alembic upgrade head`.
+- Migration ban đầu đã có trong `alembic/versions/`; áp dụng bằng `uv run alembic upgrade head`.
 
 ## 7. Bảo mật (rủi ro R8)
 

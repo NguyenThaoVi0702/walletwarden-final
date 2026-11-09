@@ -65,11 +65,33 @@ def sentences(text: str) -> list[str]:
     return [s.strip() for s in _SENTENCE_END_RE.split(text) if s.strip()]
 
 
-def check_roast(text: str, allowed_numbers: set[int]) -> str:
+_MONEY = r"(\d{1,3}(?:[.,]\d{3})+|\d{4,})\s*(?:đ|đồng|vnđ)?"
+
+
+def _check_item_price(text: str, item: str, price: int) -> None:
+    """'550.000đ cho bánh cuốn' when bánh cuốn cost 50.000đ: the model glued the day's total
+    to the item. Only the item's own price may sit right next to its name."""
+    name = re.escape(item.strip())
+    patterns = [
+        rf"{_MONEY}\s*(?:cho|tiền|vào|mua)?\s*(?:món|ly|cốc|đĩa|bát|tô|suất)?\s*{name}",
+        rf"{name}\s*(?:hết|giá|là|:|-|–)?\s*{_MONEY}",
+    ]
+    for pattern in patterns:
+        for match in re.finditer(pattern, text, re.IGNORECASE):
+            amount = int(re.sub(r"[.,]", "", match.group(1)))
+            if amount != price:
+                raise OutputRejectedError(f"wrong price next to {item!r}: {match.group(0)!r}")
+
+
+def check_roast(
+    text: str, allowed_numbers: set[int], item: str | None = None, price: int | None = None
+) -> str:
     text = _check_common(text, max_chars=600)
     for pattern, polite in _PRONOUNS:
         text = pattern.sub(polite, text)
     _check_numbers(text, allowed_numbers)
+    if item and price is not None:
+        _check_item_price(text, item, price)
     parts = sentences(text)
     if len(parts) > 1 and _UNFINISHED_RE.search(parts[-1]):
         parts = parts[:-1]  # cut off by max_tokens mid-sentence

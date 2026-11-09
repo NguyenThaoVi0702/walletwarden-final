@@ -77,6 +77,7 @@ copy .env.example .env            # mặc định dùng AI giả lập (WW_AI_PR
 
 cd backend
 uv sync                           # tự cài Python 3.12 + thư viện
+uv run alembic upgrade head       # tạo/cập nhật schema SQLite
 uv run pytest                     # phải xanh hết
 uv run uvicorn app.main:app --reload --port 8000
 # mở http://localhost:8000/docs  (Swagger) và http://localhost:8000/api/health
@@ -85,7 +86,3 @@ uv run uvicorn app.main:app --reload --port 8000
 Frontend (khi Tùng đã khởi tạo): `cd frontend && npm install && npm run dev` → http://localhost:5173.
 
 Chạy demo đầy đủ trên laptop có GPU: `.\scripts\start-demo.ps1` (xem [scripts/README.md](scripts/README.md)).
-
-## Lưu ý
-
-AI chỉ đưa ra gợi ý chung về quản lý chi tiêu, không phải chuyên gia tài chính được cấp phép.
