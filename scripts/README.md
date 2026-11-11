@@ -1,48 +1,39 @@
-# Scripts (chủ: Vi)
+# Scripts
 
-Tất cả script Python chạy từ thư mục `backend/` để dùng chung môi trường uv: `cd backend; uv run python ../scripts/<file>.py`.
+Python scripts run from `backend/` so they share its environment: `cd backend; uv run python ../scripts/<file>.py`.
 
-| Script | Dùng để | Task |
-|---|---|---|
-| `start-demo.ps1` | 1 lệnh chạy cả demo: llama-server → backend → tunnel → link + QR | T23 |
-| `show_qr.py` | in QR của link ra terminal + lưu `scripts/.demo/qr.png` | T23 |
-| `run_ai_testset.py` | chạy bộ 30 case, xuất file chấm điểm | T25 |
-| `ai_metrics.py` | đọc `logs/ai_calls.jsonl` → median/max latency, fallback rate | §9 metrics |
-| `loadtest/ai_load.js` | k6 load test AI với 1/4/5 user | T29 |
-| `github/setup-github.ps1` | thiết lập GitHub 1 lần: repo, nhánh, nhãn, milestone, 35 issue, branch protection | T04 |
-| `github/tasks.csv` | 35 task của plan (nguồn tạo issue) | T04 |
+| Script | Purpose |
+|---|---|
+| `start-demo.ps1` | one command: build the web app, start the model and backend, open a public link with a QR code |
+| `seed_demo.py` | create `demo@walletwarden.vn` / `matkhau123` with two months of sample data (`--reset` starts over) |
+| `show_qr.py` | print a URL as a QR code and save `scripts/.demo/qr.png` |
+| `run_ai_testset.py` | run the 30-case AI test set and write a rating sheet |
+| `ai_metrics.py` | summarize `logs/ai_calls.jsonl`: median and max latency, fallback rate |
+| `loadtest/ai_load.js` | k6 load test for the AI endpoints |
+| `github/` | optional helper that configures a GitHub repository (labels, issues, branch protection) |
 
 ## start-demo.ps1
 
-Cần trên laptop demo: uv, Node 20, `llm/bin/llama-server.exe` + model (xem [llm/README.md](../llm/README.md)), `cloudflared` (`winget install Cloudflare.cloudflared`), dự phòng `ngrok` (`winget install ngrok.ngrok`, rồi `ngrok config add-authtoken <token>` một lần).
+Requires uv, Node.js 22, and [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/) (`winget install Cloudflare.cloudflared`). The local model also needs the files from [llm/README.md](../llm/README.md). [ngrok](https://ngrok.com) works as an alternative tunnel (`ngrok config add-authtoken <token>` once).
 
 ```powershell
-.\scripts\start-demo.ps1                  # đầy đủ: build FE, model local, cloudflared
-.\scripts\start-demo.ps1 -Tunnel ngrok    # tunnel dự phòng
-.\scripts\start-demo.ps1 -NoLLM           # máy không GPU: Gemini (nếu có key) hoặc AI giả lập
-.\scripts\start-demo.ps1 -NoTunnel        # chỉ localhost:8000
-.\scripts\start-demo.ps1 -SkipBuild       # đã build frontend rồi
+.\scripts\start-demo.ps1                  # full: local model + Cloudflare tunnel
+.\scripts\start-demo.ps1 -NoLLM           # no GPU: Gemini if a key is set, otherwise simulated AI
+.\scripts\start-demo.ps1 -NoTunnel        # local only, http://localhost:8000
+.\scripts\start-demo.ps1 -Tunnel ngrok    # use ngrok instead
+.\scripts\start-demo.ps1 -SkipBuild       # reuse the existing frontend build
 ```
 
-Log từng tiến trình nằm ở `scripts/.demo/*.log`. Ctrl+C dừng tất cả và link hết hiệu lực (rủi ro R8: tắt tunnel sau mỗi buổi).
+When it prints "WalletWarden is live", scan the QR code with your phone. Press `Ctrl+C` to stop everything; the link stops working at once. A random `WW_JWT_SECRET` is generated unless `.env` sets one. Logs are in `scripts/.demo/`.
 
-PowerShell chặn chạy script: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` (một lần).
+To create an account with data, run `seed_demo.py` while the server is up.
 
-## Load test (T29)
+If PowerShell refuses to run scripts: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
+
+## Load test
 
 ```powershell
 winget install k6 --source winget
-# tạo trước tài khoản loadtest1..5@walletwarden.test / Loadtest123! qua trang đăng ký
-k6 run -e BASE_URL=https://xxxx.trycloudflare.com -e VUS=1 scripts/loadtest/ai_load.js
+# create loadtest1..5@walletwarden.test with password Loadtest123! first
 k6 run -e BASE_URL=https://xxxx.trycloudflare.com -e VUS=4 scripts/loadtest/ai_load.js
-k6 run -e BASE_URL=https://xxxx.trycloudflare.com -e VUS=5 scripts/loadtest/ai_load.js
 ```
-
-## Thiết lập GitHub (chạy 1 lần, người tạo repo)
-
-```powershell
-gh auth login
-.\scripts\github\setup-github.ps1 -Vi <github-vi> -Khai <github-khai> -Tung <github-tung>
-```
-
-Repo **public** thì branch protection miễn phí; repo private cần GitHub Pro (miễn phí với GitHub Student Developer Pack).

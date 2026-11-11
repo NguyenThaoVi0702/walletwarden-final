@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [qc],
   );
 
-  // Mọi API trả 401 → xoá token, RequireAuth sẽ đưa về /login.
+  // Any 401 clears the token; RequireAuth then redirects to /login.
   useEffect(() => {
     setUnauthorizedHandler(signOut);
     return () => setUnauthorizedHandler(() => {});

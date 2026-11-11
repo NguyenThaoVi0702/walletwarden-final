@@ -7,7 +7,7 @@ import {
 import { Spinner } from "../components/Spinner";
 import { useAuth } from "./useAuth";
 
-/** Chặn các route cần đăng nhập. Chưa đăng nhập → /login?next=<trang đang mở>. */
+/** Guards routes that need sign-in. Not signed in: go to /login?next=<current page>. */
 export function RequireAuth() {
   const { user, loading } = useAuth();
   const location = useLocation();
@@ -26,16 +26,13 @@ export function RequireAuth() {
   return <Outlet />;
 }
 
-/** Chỉ cho phép quay lại đường dẫn nội bộ (tránh open redirect qua ?next=). */
+/** Only allow redirects to internal paths (prevents open redirects via ?next=). */
 function safeNext(next: string | null): string {
-  // "/abc" hợp lệ; "//evil.com" và "/\evil.com" (trình duyệt hiểu là domain khác) thì không.
+  // "/abc" is valid; "//evil.com" and "/\evil.com" (read by browsers as another domain) are not.
   return next && /^\/(?![/\\])/.test(next) ? next : "/";
 }
 
-/**
- * Trang đăng nhập/đăng ký: đã đăng nhập thì vào app (trang `?next=` nếu có).
- * Đây là nơi DUY NHẤT điều hướng sau khi đăng nhập, Login/Register chỉ gọi signIn().
- */
+/** Sign-in and register pages: signed-in users are sent into the app. The only place that navigates after sign-in. */
 export function GuestOnly() {
   const { user } = useAuth();
   const [params] = useSearchParams();

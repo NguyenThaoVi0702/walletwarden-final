@@ -22,7 +22,7 @@ async function openForm() {
     name: "Thêm giao dịch",
   });
   const dialog = within(dialogEl);
-  // chờ danh mục tải xong để select có option
+  // wait for categories to load so the select has options
   await dialog.findByRole("option", { name: /Ăn uống/ });
   return { user, dialog };
 }
@@ -78,7 +78,7 @@ describe("Form giao dịch (F2)", () => {
     expect(dialog.getByLabelText("Ghi chú (không bắt buộc)")).toHaveValue(
       "trà sữa",
     );
-    expect(screen.getByRole("dialog")).toBeInTheDocument(); // chưa lưu
+    expect(screen.getByRole("dialog")).toBeInTheDocument(); // not saved yet
   });
 });
 
@@ -93,7 +93,7 @@ describe("Roast Mode (F7)", () => {
       name: "Báo cáo tin nhắn này",
     });
     const toast = report.closest("[data-tone]") as HTMLElement;
-    expect(toast).toHaveAttribute("data-tone", "honest"); // giọng của tài khoản demo
+    expect(toast).toHaveAttribute("data-tone", "honest"); // tone of the demo account
 
     await user.click(report);
     expect(

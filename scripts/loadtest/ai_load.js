@@ -1,9 +1,8 @@
-// k6 load test for the AI advisor (T29): 1, 4 and 5 simultaneous users through the tunnel.
+// k6 load test for the AI advisor: run with 1, 4 or 5 simultaneous users (VUS).
 //
 //   k6 run -e BASE_URL=https://xxxx.trycloudflare.com -e VUS=4 scripts/loadtest/ai_load.js
 //
 // Needs test accounts loadtest1..5@walletwarden.test / Loadtest123! (create them once via sign-up).
-// Endpoint paths follow the frozen contract in INTEGRATION.md.
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { Trend } from 'k6/metrics';

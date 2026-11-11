@@ -1,11 +1,9 @@
 /**
- * MSW handlers cho mọi endpoint trong INTEGRATION.md §1.2.
- * Dữ liệu giữ trong bộ nhớ (mất khi tải lại trang). Test gọi `resetMockDb()` trước mỗi case.
+ * MSW handlers for every API endpoint. Data is kept in memory (lost on reload);
+ * tests call `resetMockDb()` before each case. Response shapes and error `detail`
+ * messages mimic the real backend.
  *
- * Hình dạng response và câu `detail` lỗi bắt chước đúng backend thật (PR #42), để frontend
- * xử lý lỗi giống hệt khi tắt mock. Frontend tự dịch `detail` sang tiếng Việt (api/client.ts).
- *
- * Tài khoản mẫu: demo@walletwarden.vn / matkhau123
+ * Sample account: demo@walletwarden.vn / matkhau123
  */
 import { delay, http, HttpResponse, type JsonBodyType } from "msw";
 import type {
@@ -79,7 +77,7 @@ const json = <T extends JsonBodyType>(data: T, status = 200) =>
 
 const tokenFor = (user: User) => `mock-token-${user.id}`;
 
-/** Trả về tài khoản đang đăng nhập, hoặc null nếu thiếu/sai Bearer token. */
+/** The signed-in account, or null if the Bearer token is missing or wrong. */
 function currentAccount(request: Request): MockAccount | null {
   const header = request.headers.get("Authorization") ?? "";
   const id = Number(header.replace(/^Bearer mock-token-/, ""));
@@ -178,7 +176,7 @@ function dashboard(month: string): Dashboard {
   };
 }
 
-/** Câu roast mẫu theo đúng giao dịch vừa lưu (AI thật do Vi viết, đây chỉ là giả lập). */
+/** Sample roast text for the saved transaction (the real AI runs in the backend). */
 function roastText(
   trigger: RoastTrigger,
   tone: Tone,
@@ -201,7 +199,7 @@ function roastText(
   }[tone];
 }
 
-/** Giả lập roast trigger: khoản chi lớn hoặc danh mục vượt 80% ngân sách. */
+/** Simulated roast trigger: a large expense or a category over 80% of its budget. */
 function maybeRoast(account: MockAccount, tx: Transaction): boolean {
   if (!account.user.roast_enabled || tx.kind !== "expense") return false;
   const status = budgetStatus(tx.date.slice(0, 7));
@@ -262,7 +260,7 @@ export const handlers = [
     json({ status: "ok", env: "mock", ai: { providers: { fake: true } } }),
   ),
 
-  // F1: Auth
+  // Auth
   http.post("/api/auth/login", async ({ request }) => {
     await delay();
     const body = (await request.json()) as LoginRequest;
@@ -321,7 +319,7 @@ export const handlers = [
     return json(account.user);
   }),
 
-  // F3: Danh mục
+  // Categories
   http.get("/api/categories", ({ request }) => {
     if (!currentAccount(request)) return unauthorized();
     return json(db.categories);
@@ -372,7 +370,7 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 });
   }),
 
-  // F2: Giao dịch (export CSV đặt trước :id)
+  // Transactions (CSV export before :id)
   http.get("/api/transactions/export", ({ request }) => {
     if (!currentAccount(request)) return unauthorized();
     const month = monthOf(request);
@@ -440,7 +438,7 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 });
   }),
 
-  // F4: Ngân sách
+  // Budgets
   http.get("/api/budgets", ({ request }) => {
     if (!currentAccount(request)) return unauthorized();
     return json(budgetStatus(monthOf(request)));
@@ -456,14 +454,14 @@ export const handlers = [
     return json(budgetStatus(body.month));
   }),
 
-  // F5: Dashboard
+  // Dashboard
   http.get("/api/dashboard", async ({ request }) => {
     if (!currentAccount(request)) return unauthorized();
     await delay();
     return json(dashboard(monthOf(request)));
   }),
 
-  // F6: Chat AI (giới hạn 10 câu/phút → 429 + Retry-After)
+  // AI chat (limit 10 per minute → 429 + Retry-After)
   http.post("/api/ai/chat", async ({ request }) => {
     if (!currentAccount(request)) return unauthorized();
     const now = Date.now();
@@ -493,7 +491,7 @@ export const handlers = [
     });
   }),
 
-  // F7: Roast alerts
+  // Roast alerts
   http.get("/api/ai/alerts", ({ request }) => {
     if (!currentAccount(request)) return unauthorized();
     const unread = new URL(request.url).searchParams.get("unread") === "true";
@@ -512,7 +510,7 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 });
   }),
 
-  // F8: Báo cáo tháng
+  // Monthly report
   http.get("/api/ai/report", async ({ request }) => {
     if (!currentAccount(request)) return unauthorized();
     const month = monthOf(request);
@@ -553,7 +551,7 @@ export const handlers = [
     });
   }),
 
-  // F9: Nhập nhanh
+  // Quick entry
   http.post("/api/ai/parse", async ({ request }) => {
     if (!currentAccount(request)) return unauthorized();
     const { text } = (await request.json()) as { text: string };

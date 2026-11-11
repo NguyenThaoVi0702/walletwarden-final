@@ -8,7 +8,7 @@ import { forwardRef, useId } from "react";
 type ButtonVariant = "primary" | "secondary" | "ghost";
 
 const BUTTON_STYLES: Record<ButtonVariant, string> = {
-  // Nút chính: nền xanh lá, chữ navy (chữ trắng trên xanh lá không đủ tương phản).
+  // Primary button: green background with navy text (white on green lacks contrast).
   primary: "bg-green text-navy hover:brightness-95",
   secondary: "bg-navy text-white hover:bg-navy-900",
   ghost: "text-navy hover:bg-navy-50",

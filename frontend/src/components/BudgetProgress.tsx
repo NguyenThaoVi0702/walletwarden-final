@@ -8,7 +8,7 @@ const BAR: Record<BudgetLevel, string> = {
   over: "bg-danger",
 };
 
-/** Thanh tiến độ ngân sách. Trạng thái luôn có chữ đi kèm, không chỉ dựa vào màu. */
+/** Budget progress bar. Status always has text, never color alone. */
 export function BudgetProgress({
   label,
   spent,
@@ -21,9 +21,9 @@ export function BudgetProgress({
   spent: number;
   limit: number;
   icon?: string;
-  /** Màu danh mục: thanh tô màu danh mục, trạng thái (sắp chạm / vượt) đọc qua chữ và icon. */
+  /** Category color for the bar; status (near/over) is conveyed by text and icon. */
   color?: string;
-  /** `usage_pct` backend đã tính; không có thì tự tính từ spent/limit. */
+  /** `usage_pct` from the backend; computed from spent/limit when missing. */
   pct?: number;
 }) {
   const pct = serverPct ?? usagePct(spent, limit);

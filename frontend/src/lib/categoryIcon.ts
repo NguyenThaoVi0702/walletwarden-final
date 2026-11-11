@@ -1,6 +1,6 @@
 /**
- * Icon danh mục luôn là emoji. Tài khoản tạo trước bản sửa này có icon dạng tên chữ
- * (backend cũ lưu "utensils", "car"…) nên đổi sang emoji tương ứng thay vì in nguyên chữ.
+ * Category icons are emoji. Older accounts stored names such as "utensils" or "car";
+ * those are mapped to the matching emoji.
  */
 const LEGACY_NAMES: Record<string, string> = {
   utensils: "🍜",
@@ -23,7 +23,7 @@ export function categoryIcon(icon: string | null | undefined): string {
   const value = (icon ?? "").trim();
   if (!value) return DEFAULT_CATEGORY_ICON;
   if (value in LEGACY_NAMES) return LEGACY_NAMES[value];
-  // Chữ ASCII không phải emoji (tên icon lạ): dùng icon mặc định.
+  // ASCII text that is not an emoji (unknown icon name): use the default icon.
   if (/^[\x20-\x7e]+$/.test(value)) return DEFAULT_CATEGORY_ICON;
   return value;
 }

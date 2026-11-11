@@ -5,7 +5,7 @@ const SWATCHES = [
   { value: OTHER_COLOR, label: "Xám" },
 ] as const;
 
-/** Chọn màu danh mục: 9 màu gợi ý (đã kiểm tra dễ phân biệt) + ô "màu khác" tuỳ ý. */
+/** Category color picker: 9 suggested colors plus a custom color input. */
 export function ColorPicker({
   value,
   onChange,

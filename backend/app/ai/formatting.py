@@ -22,7 +22,7 @@ _UNIT = {
 }  # fmt: skip
 # Spoken money slang. Several are also counting words ("2 chai bia 50k", "1 lít xăng 25k"),
 # so a standard amount anywhere in the text always wins over slang.
-XI_VALUE = 10_000  # "xị" is 10k in most of the team's usage; some regions say 100k
+XI_VALUE = 10_000  # "xị" is 10k in most usage; some regions say 100k
 SLANG_UNIT = {
     "lít": 100_000, "lốp": 100_000, "sọi": 100_000,
     "xị": XI_VALUE, "lá": 10_000,

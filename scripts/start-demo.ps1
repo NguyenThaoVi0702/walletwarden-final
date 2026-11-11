@@ -1,7 +1,7 @@
 <#
 .SYNOPSIS
-  One command to run the whole WalletWarden demo from this laptop (T23):
-  model server -> backend (serving the React build) -> temporary HTTPS tunnel + QR code.
+  Run WalletWarden end to end: build the web app, start the local model (optional) and the
+  backend, then open a temporary HTTPS link with a QR code for phones.
 
 .EXAMPLE
   .\scripts\start-demo.ps1                    # full demo: local LLM + cloudflared
@@ -37,10 +37,17 @@ function Wait-Url([string]$Url, [int]$Seconds, [string]$What) {
 
 try {
     if (-not (Test-Path (Join-Path $Root ".env"))) {
-        Write-Warning ".env not found - using defaults. Copy .env.example to .env for Gemini and a real JWT secret."
+        Write-Warning ".env not found - using defaults. Copy .env.example to .env to configure Gemini."
+    }
+    # Sign-in tokens need a secret outside dev mode; use a random one unless .env provides it.
+    $envFile = Join-Path $Root ".env"
+    $hasSecret = $env:WW_JWT_SECRET -or ((Test-Path $envFile) -and (Select-String -Path $envFile -Pattern '^\s*WW_JWT_SECRET=(?!change-me)\S{16,}' -Quiet))
+    if (-not $hasSecret) {
+        $env:WW_JWT_SECRET = -join ((1..48) | ForEach-Object { '{0:x}' -f (Get-Random -Maximum 16) })
+        Write-Host "  WW_JWT_SECRET not set - generated a temporary one (everyone is signed out on restart)." -ForegroundColor DarkGray
     }
 
-    # 1. Frontend build (served by FastAPI, so one link serves app + API)
+    # 1. Frontend build (served by the backend, so one link serves the app and the API)
     $fe = Join-Path $Root "frontend"
     if (-not $SkipBuild -and (Test-Path (Join-Path $fe "package.json"))) {
         Write-Host "[1/4] Building frontend" -ForegroundColor Cyan
@@ -50,14 +57,14 @@ try {
         Pop-Location
     } else { Write-Host "[1/4] Frontend build skipped" -ForegroundColor DarkGray }
 
-    # 2. Local model
+    # 2. Language model
     if ($NoLLM) {
         $env:WW_AI_PROVIDERS = if ($env:WW_GEMINI_API_KEY) { "gemini" } else { "fake" }
         Write-Host "[2/4] No local LLM, AI providers: $env:WW_AI_PROVIDERS" -ForegroundColor DarkGray
     } else {
         Write-Host "[2/4] Starting llama-server" -ForegroundColor Cyan
         $procs += Start-Process pwsh -PassThru -WindowStyle Minimized `
-            -ArgumentList "-NoProfile", "-File", (Join-Path $Root "llm\start-llama.ps1") `
+            -ArgumentList "-NoProfile", "-File", "`"$(Join-Path $Root 'llm\start-llama.ps1')`"" `
             -RedirectStandardOutput "$Demo\llama.out.log" -RedirectStandardError "$Demo\llama.err.log"
         Wait-Url "http://127.0.0.1:8080/health" 180 "model"
         $env:WW_AI_PROVIDERS = "local,gemini"

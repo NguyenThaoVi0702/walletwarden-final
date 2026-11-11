@@ -1,22 +1,22 @@
-# Prompts (chủ: Vi)
+# Prompts
 
-Mỗi tính năng AI = đúng một prompt, viết bằng Jinja2. Code render chúng ở [backend/app/ai/prompts.py](../backend/app/ai/prompts.py).
+Each AI feature uses exactly one Jinja2 template. They are rendered by [backend/app/ai/prompts.py](../backend/app/ai/prompts.py). Prompts are in Vietnamese because the app is.
 
-| File | Tính năng | Biến nhận vào |
+| File | Feature | Variables |
 |---|---|---|
-| `advisor_system.j2` | F6 cố vấn | – |
-| `summary.j2` | F6, F8: số liệu tháng | `s`: `FinancialSummary` |
-| `roast_system.j2` | F7 roast, quy tắc + giọng | `tone`: `gentle` \| `honest` \| `savage` |
-| `roast_user.j2` | F7 sự kiện | `c`: `RoastContext`, `f`: số phụ (`remaining`, `daily_allowance`, `times_average`) |
-| `report_system.j2` | F8 báo cáo tháng (JSON) | – |
-| `quick_entry_system.j2` | F9 nhập nhanh (JSON) | `categories`: list tên danh mục |
-| `testset/cases.yaml` | bộ 30 case | – |
-| `testset/results/` | kết quả mỗi lần chạy, có cột chấm điểm | – |
+| `advisor_system.j2` | chat advisor | – |
+| `summary.j2` | month figures for the advisor and report | `s`: `FinancialSummary` |
+| `roast_system.j2` | roast rules and tone | `tone`: `gentle`, `honest` or `savage` |
+| `roast_user.j2` | the event to roast | `c`: `RoastContext`, `f`: derived figures |
+| `report_system.j2` | monthly report (JSON) | – |
+| `quick_entry_system.j2` | quick entry (JSON) | `categories`: category names |
+| `roast_examples.yaml` | few-shot examples by tone | – |
+| `testset/cases.yaml` | 30-case test set | – |
+| `testset/results/` | output of each test-set run | – |
 
-Filter dùng được trong template: `{{ x | vnd }}` → `1.500.000đ`, `{{ x | pct }}` → `82%`.
+Template filters: `{{ x | vnd }}` gives `1.500.000đ`, `{{ x | pct }}` gives `82%`.
 
-Quy tắc khi sửa:
+## Editing
 
-- Không đưa phép tính vào prompt. Cần số mới thì thêm vào `roast_facts()` hoặc nhờ Khải thêm vào `FinancialSummary`.
-- Sửa xong **luôn** chạy lại bộ 30 case (xem [backend/app/ai/README.md §4](../backend/app/ai/README.md)).
-- Prompt là tiếng Việt vì app dùng tiếng Việt.
+- Keep arithmetic out of prompts. Compute new figures in code (`roast_facts()` or the summary service) and pass them in.
+- After a change, run `uv run pytest tests/ai` and the test set (see [backend/app/ai/README.md](../backend/app/ai/README.md)).

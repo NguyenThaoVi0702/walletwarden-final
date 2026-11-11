@@ -11,7 +11,7 @@ param(
     [string]$Build = "b12000",
     # 12.4 runs on any driver that reports CUDA >= 12.4 in nvidia-smi; 13.4 needs a newer driver.
     [string]$Cuda = "12.4",
-    # Chosen in T22 (30/10): see the comparison table in llm/README.md.
+    # See the model comparison in llm/README.md.
     [string]$ModelRepo = "unsloth/gemma-4-E4B-it-GGUF",
     [string]$ModelFile = "gemma-4-E4B-it-Q4_K_M.gguf",
     [switch]$SkipModel

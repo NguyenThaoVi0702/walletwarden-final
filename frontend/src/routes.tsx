@@ -1,4 +1,4 @@
-// File cấu hình route (không phải component module) nên không cần fast refresh.
+// Route config (not a component module), so fast refresh does not apply.
 /* eslint-disable react-refresh/only-export-components */
 import { lazy, Suspense, type ReactNode } from "react";
 import type { RouteObject } from "react-router-dom";
@@ -7,7 +7,7 @@ import { Spinner } from "./components/Spinner";
 import { AppLayout } from "./layouts/AppLayout";
 import { AuthLayout } from "./layouts/AuthLayout";
 
-// Mỗi trang là một chunk riêng để lần tải đầu trên điện thoại nhẹ hơn.
+// One chunk per page keeps the first load light on phones.
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));

@@ -1,7 +1,4 @@
-/**
- * Dữ liệu mẫu 1 tháng cho MSW và test. Đúng type trong src/api/types.ts.
- * Danh mục mặc định khớp INTEGRATION.md §1.3.
- */
+/** One month of sample data for MSW and tests. */
 import type { BudgetInput, Category, Transaction, User } from "../api/types";
 import { currentMonth } from "../lib/format";
 
@@ -26,7 +23,7 @@ export const seedAccounts = (): MockAccount[] => [
   },
 ];
 
-/** Danh mục mặc định tạo khi đăng ký (backend: services/defaults.py, is_default = true). */
+/** Default categories created on registration (mirrors backend services/defaults.py). */
 export const seedCategories = (): Category[] =>
   (
     [
@@ -75,7 +72,7 @@ export const seedCategories = (): Category[] =>
     ] as const
   ).map((c) => ({ ...c, is_default: true }));
 
-/** [ngày trong tháng, kind, số tiền, category_id, ghi chú] */
+/** [day of month, kind, amount, category_id, note] */
 const TX_TEMPLATE: [
   number,
   Transaction["kind"],
@@ -110,7 +107,7 @@ const TX_TEMPLATE: [
   [26, "expense", 210_000, 1, "Đi chợ"],
 ];
 
-/** Giao dịch của `month` (mặc định tháng hiện tại), chỉ lấy tới ngày hôm nay nếu là tháng này. */
+/** Transactions of `month` (default: current); up to today for the current month. */
 export function seedTransactions(
   month: string = currentMonth(),
   today: Date = new Date(),

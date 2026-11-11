@@ -1,4 +1,4 @@
-/** Bộ icon nét (stroke) tối giản, không cần thư viện ngoài. */
+/** Minimal stroke icon set, no external library. */
 const PATHS = {
   dashboard: "M3 13h8V3H3zm10 8h8V11h-8zM3 21h8v-6H3zm10-18v6h8V3z",
   transactions: "M7 7h13M7 7l3-3M7 7l3 3M17 17H4m13 0-3-3m3 3-3 3",

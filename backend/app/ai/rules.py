@@ -243,7 +243,7 @@ def report(s: FinancialSummary) -> dict[str, str]:
 
 # ---------------------------------------------------------------- quick entry
 
-# Keywords for the default categories (Vietnamese names agreed with Khải in the contract).
+# Keywords for the default categories.
 CATEGORY_KEYWORDS: dict[str, list[str]] = {
     "Ăn uống": ["an", "com", "pho", "bun", "tra sua", "cafe", "ca phe", "lunch", "dinner",
                 "breakfast", "banh", "nuoc ngot", "nuoc mia", "do an", "an trua", "an toi",

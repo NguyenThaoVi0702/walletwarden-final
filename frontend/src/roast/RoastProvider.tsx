@@ -11,16 +11,16 @@ import type { RoastAlert } from "../api/types";
 import { RoastContext, roastPolling, type RoastState } from "./context";
 import { RoastToast } from "./RoastToast";
 
-/** Thêm alert mới vào danh sách, bỏ trùng id. */
+/** Add new alerts, skipping duplicate ids. */
 function mergeAlerts(prev: RoastAlert[], incoming: RoastAlert[]): RoastAlert[] {
   return [...prev, ...incoming.filter((a) => !prev.some((p) => p.id === a.id))];
 }
 
 /**
- * Luồng Roast Mode (INTEGRATION.md §1.4):
- * tạo giao dịch → `roast_pending: true` → poll GET /api/ai/alerts?unread=true mỗi 2 s, tối đa 15 s
- * → hiện toast theo giọng → đóng thì POST /read, "Báo cáo" thì POST /report.
- * Khi mở app cũng kiểm tra 1 lần để không bỏ sót alert đến lúc người dùng đang ở trang khác.
+ * Roast flow: create a transaction → `roast_pending: true` → poll
+ * GET /api/ai/alerts?unread=true every 2 s for up to 15 s → show a toast in the matching tone →
+ * closing sends POST /read, "Báo cáo" sends POST /report.
+ * Also checks once when the app opens, so alerts that arrived while on another page are not missed.
  */
 export function RoastProvider({ children }: { children: ReactNode }) {
   const [alerts, setAlerts] = useState<RoastAlert[]>([]);
@@ -31,7 +31,7 @@ export function RoastProvider({ children }: { children: ReactNode }) {
     timer.current = null;
   }, []);
 
-  /** Thêm alert mới (bỏ trùng id). Trả về true nếu có alert chưa đọc. */
+  /** Add new alerts (skipping duplicates). Returns true if any is unread. */
   const pull = useCallback(async () => {
     try {
       const unread = await fetchUnreadAlerts();
@@ -39,7 +39,7 @@ export function RoastProvider({ children }: { children: ReactNode }) {
       setAlerts((prev) => mergeAlerts(prev, unread));
       return true;
     } catch {
-      return false; // roast chỉ là phụ, lỗi mạng thì bỏ qua
+      return false; // roast is secondary; ignore network errors
     }
   }, []);
 
@@ -52,7 +52,7 @@ export function RoastProvider({ children }: { children: ReactNode }) {
     }, roastPolling.intervalMs);
   }, [pull, stop]);
 
-  // Mở app: kiểm tra 1 lần alert chưa đọc (setState chạy trong .then, không đồng bộ trong effect).
+  // On open: check unread alerts once (setState runs in .then, not synchronously in the effect).
   useEffect(() => {
     let cancelled = false;
     fetchUnreadAlerts()

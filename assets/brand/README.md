@@ -1,49 +1,33 @@
-# Logo và màu sắc WalletWarden
+# Brand
 
 <img src="logo-192.png" width="96" alt="WalletWarden logo">
 
-Logo chính thức: chú heo đất đang giận. Phong cách: trắng, xanh lá, nền xanh dương đậm. Mã màu lấy trực tiếp từ logo.
+The logo is an angry piggy bank in white and green on deep blue.
 
-## File
+## Files
 
-| File | Dùng cho |
+| File | Use |
 |---|---|
-| `logo.png` (1024×1024, góc bo tròn, nền trong suốt) | file gốc: README, slide, tài liệu |
-| `logo-512.png`, `logo-192.png` | icon PWA (`purpose: any`) |
-| `logo-maskable-512.png` (nền đậm phủ kín) | icon PWA `purpose: maskable` (Android tự cắt tròn/bo góc) |
-| `logo-180.png` | `apple-touch-icon` (iPhone "Thêm vào màn hình chính") |
-| `logo-64.png`, `logo-32.png`, `favicon.ico` | favicon, logo nhỏ trên thanh điều hướng |
+| `logo.png` (1024x1024, transparent) | source image |
+| `logo-512.png`, `logo-192.png` | PWA icons |
+| `logo-maskable-512.png` | maskable PWA icon (Android crops it) |
+| `logo-180.png` | `apple-touch-icon` for iPhone |
+| `logo-64.png`, `logo-32.png`, `favicon.ico` | favicon and small logos |
 
-## Bảng màu
+## Colors
 
-| Token | Mã | Dùng cho |
+| Token | Hex | Use |
 |---|---|---|
-| `navy` | `#0E2F51` | màu chủ đạo: header, sidebar, chữ tiêu đề, nền màn hình chào |
-| `navy-900` | `#0B2440` | nền dark mode |
-| `navy-50` | `#E8EEF5` | nền thẻ phụ, hàng xen kẽ trong bảng |
-| `green` | `#36AB66` | nút chính, thanh ngân sách còn an toàn, icon, điểm nhấn |
-| `green-700` | `#1F7A45` | **chữ/link xanh lá trên nền trắng** (màu `green` gốc không đủ tương phản) |
-| `green-50` | `#E9F6EE` | nền thông báo tốt, chip "trong ngân sách" |
-| `white` | `#FFFFFF` | nền chính |
-| `surface` | `#F5F8FA` | nền trang phía sau các thẻ |
-| `warning` | `#F2B84B` | ngân sách ≥ 80% (dùng làm nền, chữ màu `navy`) |
-| `danger` | `#C0392B` | vượt ngân sách, lỗi, xoá |
+| `navy` | `#0E2F51` | primary: header, sidebar, headings |
+| `navy-900` | `#0B2440` | dark mode background |
+| `navy-50` | `#E8EEF5` | secondary surfaces |
+| `green` | `#36AB66` | primary button, icons, progress bars |
+| `green-700` | `#1F7A45` | green text and links on white |
+| `green-50` | `#E9F6EE` | positive backgrounds |
+| `surface` | `#F5F8FA` | page background |
+| `warning` | `#F2B84B` | budget at 80% or more |
+| `danger` | `#C0392B` | over budget, errors, delete |
 
-Độ tương phản đã kiểm tra theo WCAG:
+`green` on white has a contrast ratio of only 2.9, so use it for fills and icons, and use `green-700` or `navy` for text. Buttons use `navy` text on `green`.
 
-| Cặp màu | Tỉ lệ | Kết quả |
-|---|---|---|
-| `navy` trên trắng | 13,6 | đạt |
-| `green-700` trên trắng | 5,35 | đạt |
-| `navy` trên `green` (chữ trên nút chính) | 4,65 | đạt AA |
-| `danger` trên trắng | 5,44 | đạt |
-| `green` trên trắng | 2,93 | **không đạt**: không dùng cho chữ, chỉ dùng cho nền nút, icon, thanh tiến độ |
-| trắng trên `green` | 2,93 | **không đạt**: nút chính dùng chữ `navy`, không dùng chữ trắng |
-
-## Màu theo giọng roast
-
-| Giọng | Nền | Viền / chữ |
-|---|---|---|
-| Gentle | `green-50` | viền `green`, chữ `navy` |
-| Honest | `navy-50` | viền `navy`, chữ `navy` |
-| Savage | `navy` (giống logo) | chữ trắng, viền `green`, icon heo giận |
+Roast tones: gentle (`green-50`, green border), honest (`navy-50`, navy border), savage (`navy` background, white text, green border).

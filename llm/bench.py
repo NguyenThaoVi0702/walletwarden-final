@@ -1,4 +1,4 @@
-"""Quick benchmark of the running llama-server (T05 / T22).
+"""Quick benchmark of the running llama-server.
 
 Measures reply latency and tokens/s with 1 and N simultaneous requests,
 using a real roast prompt so the numbers match what users will see.

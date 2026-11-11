@@ -1,88 +1,134 @@
 <p align="center"><img src="assets/brand/logo-192.png" width="120" alt="WalletWarden logo"></p>
 
-# WalletWarden
+<h1 align="center">WalletWarden</h1>
 
-> Spend less. Or get roasted.
+<p align="center"><em>Spend less. Or get roasted.</em></p>
 
-Logo và bảng màu chính thức (trắng, xanh lá `#36AB66`, xanh dương đậm `#0E2F51`): [assets/brand/](assets/brand/README.md).
+WalletWarden is a personal finance assistant with an AI sidekick. Track income and expenses, set monthly budgets, see where your money goes, ask the AI for advice, and get a (friendly or savage) roast when you overspend. The interface is in Vietnamese and amounts are in VND.
 
-Trợ lý chi tiêu cá nhân dùng AI: ghi thu/chi, đặt ngân sách, xem dashboard, hỏi AI và bị AI "roast" khi tiêu quá tay. Toàn bộ hệ thống (app, database, LLM) chạy trên **một laptop** và mở ra cho người test qua **một link HTTPS tạm thời**.
+Everything runs on a single computer: the web app, the database and, optionally, a local language model. You can use it from the same computer or open it on your phone.
 
-Đồ án môn Phát triển phần mềm, 24/10 – 17/11/2026. Nhóm: Nguyễn Thảo Vi, Bùi Quang Khải, Nguyễn Đình Tùng.
+## Features
 
-## Ai làm gì, đọc file nào
+- **Accounts:** register and sign in with email and password.
+- **Transactions:** add, edit, delete, browse by month and export to CSV. Type amounts naturally: `45k`, `1tr2`, `1.500.000`.
+- **Categories and budgets:** default categories, custom colors and icons, an overall monthly budget plus per-category limits.
+- **Dashboard:** spending by category and by day, and budget progress for the selected month.
+- **AI advisor:** ask questions about your spending, or just type "ate breakfast for 50k" and it is logged for you.
+- **Roast mode:** alerts when a budget is nearly or fully used, when a purchase is unusually large, and in other situations, in a gentle, honest or savage tone.
+- **Monthly report:** a written summary of the month.
+- **Installable PWA:** add it to your phone's home screen and use it like a native app.
 
-| Thành viên | Track | Thư mục sở hữu | Hướng dẫn riêng | Review PR của |
-|---|---|---|---|---|
-| **Vi** (PM, AI, Architect) | AI | `backend/app/ai`, `prompts`, `llm`, `scripts` | [backend/app/ai/README.md](backend/app/ai/README.md) | Tùng |
-| **Khải** (Tech Lead, Backend, DevOps) | Backend | `backend/app/api`, `backend/app/schemas`, `backend/app/services`, `backend/alembic` | [backend/README.md](backend/README.md) | Vi |
-| **Tùng** (Frontend, UI/UX) | Frontend | `frontend` | [frontend/README.md](frontend/README.md) | Khải |
-| Cả ba | QA, tài liệu | `tests`, `Documents`, `Meetings` | [tests/README.md](tests/README.md) | — |
+AI replies come from a local model first, then the Gemini API, and finally a built-in rule-based engine, so the app always answers even without a GPU or an API key.
 
-Tài liệu chung, **ai cũng phải đọc**:
+## Requirements
 
-1. [CONTRIBUTING.md](CONTRIBUTING.md): quy trình nhánh, commit, PR, review và CI kiểm tra những gì.
-2. [INTEGRATION.md](INTEGRATION.md): contract giữa 3 track và kế hoạch ghép thành một ứng dụng hoàn chỉnh (4/11, 6/11, 10/11, demo 17/11).
+| Tool | Version | Notes |
+|---|---|---|
+| [Git](https://git-scm.com) | any | to clone the repository |
+| [uv](https://docs.astral.sh/uv/) | latest | installs Python 3.12 and the backend dependencies |
+| [Node.js](https://nodejs.org) | 22 LTS | builds the web app |
 
-## Kiến trúc
+Optional: an NVIDIA GPU for the local model, a [Gemini API key](https://aistudio.google.com/apikey), and [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/) for a public link. Windows users should run PowerShell commands from a normal PowerShell window.
 
-```
- Trình duyệt người test (laptop / điện thoại)
-        │  https://xxxx.trycloudflare.com
-        ▼
- cloudflared quick tunnel  ──(chỉ port 8000)──┐
-                                              ▼
- ┌──────────────────────── Laptop demo ────────────────────────┐
- │ FastAPI :8000                                               │
- │  ├─ "/"        → React PWA build (frontend/dist)     [Tùng] │
- │  ├─ /api/*     → routers + Pydantic schemas          [Khải] │
- │  ├─ services   → ngân sách, roast trigger, tổng hợp  [Khải] │
- │  ├─ app/ai     → prompt + router local→Gemini→rules  [Vi]   │
- │  └─ SQLite (WAL)                                            │
- │ llama-server 127.0.0.1:8080 (GPU, 4 slot)            [Vi]   │
- └─────────────────────────────────────────────────────────────┘
-          Gemini API (chỉ khi model local không trả lời)
-```
-
-## Cấu trúc repo
-
-```
-.github/            CI (quét mọi push/PR), CODEOWNERS, template PR/issue
-backend/            Python 3.12 + FastAPI (một project uv duy nhất)
-  app/main.py       entry point (Khải)
-  app/config.py     cấu hình từ .env (dùng chung)
-  app/api/          routers (Khải)
-  app/schemas/      Pydantic schemas = contract (Khải, đóng băng 30/10)
-  app/services/     logic nghiệp vụ (Khải)
-  app/ai/           module AI (Vi) — interface.py là contract
-  tests/            pytest
-  openapi.json      contract API sinh tự động, frontend sinh type từ file này
-frontend/           React + TypeScript + Vite PWA (Tùng)
-prompts/            Jinja2 prompt + bộ test 30 case (Vi)
-llm/                cài và chạy llama.cpp, benchmark (Vi)
-scripts/            start-demo.ps1, chạy test AI, metrics, setup GitHub (Vi)
-tests/              e2e Playwright, kịch bản cross-test, UAT (cả nhóm)
-Documents/          SRS, Design Document, báo cáo (PDF)
-Meetings/           biên bản họp
-```
-
-## Chạy nhanh (máy dev, không cần GPU)
-
-Cần: [uv](https://docs.astral.sh/uv/), Node.js 20+, Git.
+## Quick start (computer)
 
 ```powershell
-git clone https://github.com/<owner>/walletwarden.git
+git clone https://github.com/NguyenThaoVi0702/walletwarden.git
 cd walletwarden
-copy .env.example .env            # mặc định dùng AI giả lập (WW_AI_PROVIDERS=fake)
+copy .env.example .env          # use `cp` on macOS/Linux
 
-cd backend
-uv sync                           # tự cài Python 3.12 + thư viện
-uv run alembic upgrade head       # tạo/cập nhật schema SQLite
-uv run pytest                     # phải xanh hết
-uv run uvicorn app.main:app --reload --port 8000
-# mở http://localhost:8000/docs  (Swagger) và http://localhost:8000/api/health
+cd frontend
+npm ci
+npm run build                   # creates frontend/dist, served by the backend
+cd ../backend
+uv sync
+uv run alembic upgrade head     # creates the SQLite database
+uv run uvicorn app.main:app --port 8000
 ```
 
-Frontend (khi Tùng đã khởi tạo): `cd frontend && npm install && npm run dev` → http://localhost:5173.
+Open <http://localhost:8000>, click **Register** and start tracking. API documentation is at <http://localhost:8000/docs>.
 
-Chạy demo đầy đủ trên laptop có GPU: `.\scripts\start-demo.ps1` (xem [scripts/README.md](scripts/README.md)).
+To try the app with two months of sample data, run this in a second terminal while the server is running:
+
+```powershell
+cd backend
+uv run python ../scripts/seed_demo.py
+```
+
+Then sign in with `demo@walletwarden.vn` / `matkhau123`. Add `--reset` to start the sample account over.
+
+## Use it on your phone
+
+Pick whichever option fits.
+
+### Option 1: public link and QR code (any network)
+
+One script builds the app, starts the server and opens a temporary HTTPS link:
+
+```powershell
+winget install Cloudflare.cloudflared    # once; reopen the terminal afterwards
+.\scripts\start-demo.ps1 -NoLLM          # drop -NoLLM if you set up the local model
+```
+
+Scan the QR code printed in the terminal, or open the `https://….trycloudflare.com` link on your phone. The link works only while the script is running; press `Ctrl+C` to stop it. See [scripts/README.md](scripts/README.md) for all options.
+
+### Option 2: same Wi-Fi network
+
+Start the server so it accepts connections from other devices:
+
+```powershell
+cd backend
+uv run uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+Find your computer's IP address (`ipconfig` on Windows, look for *IPv4 Address*) and open `http://<that-ip>:8000` on your phone. If it does not load, allow Python through the firewall for private networks.
+
+### Install it as an app
+
+Open the link in Chrome (Android) or Safari (iPhone), then choose **Add to Home screen**. Installing requires HTTPS, so use Option 1 for this.
+
+## Configuration
+
+Settings are read from environment variables or from `.env` in the repository root. Copy [.env.example](.env.example) to start.
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `WW_AI_PROVIDERS` | `fake` | AI chain: `fake` (rules only), `local`, `gemini`, or a list such as `local,gemini` |
+| `WW_GEMINI_API_KEY` | empty | Needed for the `gemini` provider |
+| `WW_JWT_SECRET` | dev value | Long random string that signs sign-in tokens. **Required** when `WW_ENV` is not `dev` (the demo script generates one for you) |
+| `WW_DATABASE_URL` | `sqlite:///./walletwarden.db` | Database location |
+
+## Local AI model (optional)
+
+With an NVIDIA GPU you can run the language model on your own machine. See [llm/README.md](llm/README.md), then start with `WW_AI_PROVIDERS=local,gemini`.
+
+## Project layout
+
+```
+backend/     FastAPI application, SQLite models, AI module, tests
+frontend/    React + TypeScript + Vite progressive web app
+prompts/     Prompt templates and the AI test set
+llm/         Scripts to install and run the local model
+scripts/     Demo launcher, sample data, QR code, load test
+tests/       Cross-component test notes
+assets/      Logo and brand colors
+```
+
+## Documentation
+
+- [API reference](backend/API_README.md) and the OpenAPI contract in [backend/openapi.json](backend/openapi.json)
+- [Backend guide](backend/README.md) · [Frontend guide](frontend/README.md) · [AI module](backend/app/ai/README.md)
+- [Contributing](CONTRIBUTING.md)
+
+## Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| `Port 8000 is already in use` | Stop the other server, or use `--port 8001` |
+| The page shows an old version | Hard refresh (`Ctrl+F5`); the app caches itself as a PWA |
+| `WW_JWT_SECRET must be set` | Set a long random value in `.env` (any `WW_ENV` other than `dev` needs it) |
+| `cloudflared` is not recognized | Reopen the terminal after installing, or use Option 2 |
+| Registration or sign-in returns 429 | Too many attempts; wait a minute |
+| `uv` fails on OneDrive folders | `$env:UV_LINK_MODE="copy"` and retry |
+| Script blocked by PowerShell | `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` |

@@ -1,6 +1,6 @@
 const vnd = new Intl.NumberFormat("vi-VN");
 
-/** Số tiền lớn nhất backend nhận (int32, Field(le=2_147_483_647)). */
+/** Largest amount the backend accepts (int32). */
 export const MAX_VND = 2_147_483_647;
 
 /** formatVND(1500000) → "1.500.000 ₫" */
@@ -8,14 +8,14 @@ export function formatVND(amount: number): string {
   return `${vnd.format(Math.round(amount))} ₫`;
 }
 
-/** Số tiền để điền sẵn vào ô nhập: 9000000 → "9.000.000" (parseMoney đọc lại được). */
+/** Value for prefilling an input: 9000000 → "9.000.000" (readable by parseMoney). */
 export function formatAmountInput(amount: number): string {
   return vnd.format(Math.round(amount));
 }
 
 /**
- * Đọc số tiền người dùng gõ, trả về số nguyên VND hoặc null nếu không hiểu.
- * Hỗ trợ: "1500000", "1.500.000", "45k", "45 nghìn", "1tr", "1tr2", "1,5tr", "2 triệu".
+ * Parse a typed amount into integer VND, or null if it is not understood.
+ * Supports "1500000", "1.500.000", "45k", "45 nghìn", "1tr", "1tr2", "1,5tr", "2 triệu".
  */
 export function parseMoney(input: string): number | null {
   const s = input
@@ -37,14 +37,14 @@ export function parseMoney(input: string): number | null {
   m = s.match(/^(\d+(?:[.,]\d+)?)(?:k|nghìn|nghin|ngàn|ngan)$/);
   if (m) return Math.round(Number(m[1].replace(",", ".")) * 1_000);
 
-  // 1.500.000 hoặc 1,500,000 hoặc 1500000
+  // 1.500.000, 1,500,000 or 1500000
   if (/^\d{1,3}([.,]\d{3})+$/.test(s) || /^\d+$/.test(s)) {
     return Number(s.replace(/[.,]/g, ""));
   }
   return null;
 }
 
-/** Tháng hiện tại dạng "YYYY-MM" theo giờ máy. */
+/** Current month as "YYYY-MM" in local time. */
 export function currentMonth(now: Date = new Date()): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 }
@@ -61,7 +61,7 @@ export function shiftMonth(month: string, delta: number): string {
   return currentMonth(new Date(y, m - 1 + delta, 1));
 }
 
-/** Ngày hôm nay dạng "YYYY-MM-DD" theo giờ máy. */
+/** Today as "YYYY-MM-DD" in local time. */
 export function todayISO(now: Date = new Date()): string {
   return `${currentMonth(now)}-${String(now.getDate()).padStart(2, "0")}`;
 }
@@ -82,7 +82,7 @@ export function formatDayHeading(iso: string): string {
   return `${name}, ${String(d).padStart(2, "0")}/${String(m).padStart(2, "0")}`;
 }
 
-/** Rút gọn số tiền cho trục biểu đồ: 1500000 → "1,5tr", 45000 → "45k" */
+/** Short amount for chart axes: 1500000 → "1,5tr", 45000 → "45k" */
 export function formatCompactVND(amount: number): string {
   const abs = Math.abs(amount);
   if (abs >= 1_000_000)

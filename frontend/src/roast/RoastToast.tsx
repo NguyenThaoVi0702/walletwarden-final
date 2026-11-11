@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { RoastAlert, Tone } from "../api/types";
 
-/** Màu theo giọng, đúng quy tắc README §4. */
+/** Color by tone. */
 const TONE_STYLE: Record<
   Tone,
   { box: string; label: string; muted: string; button: string }

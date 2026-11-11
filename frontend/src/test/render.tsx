@@ -5,7 +5,7 @@ import { createQueryClient } from "../lib/queryClient";
 import { AuthProvider } from "../auth/AuthContext";
 import { routes } from "../routes";
 
-/** Render toàn bộ app (router + query + auth) tại `path`, dùng MSW node làm backend. */
+/** Render the whole app (router, query, auth) at `path`, with MSW as the backend. */
 export function renderApp(path = "/") {
   const router = createMemoryRouter(routes, { initialEntries: [path] });
   const queryClient = createQueryClient();

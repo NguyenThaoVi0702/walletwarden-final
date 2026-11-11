@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 
-/** Khung trang Đăng nhập / Đăng ký: nền navy trên điện thoại, chia đôi trên desktop. */
+/** Sign-in and register layout: navy background on phones, split screen on desktop. */
 export function AuthLayout() {
   return (
     <div className="grid min-h-svh md:grid-cols-2">

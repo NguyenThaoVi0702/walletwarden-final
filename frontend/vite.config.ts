@@ -27,14 +27,14 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // MSW chỉ dùng lúc dev, không đưa vào cache của PWA.
+        // MSW is for development only; keep it out of the PWA cache.
         globIgnores: ['**/mockServiceWorker.js'],
-        navigateFallbackDenylist: [/^\/api/], // quan trọng: SW không được trả index.html cho API
+        navigateFallbackDenylist: [/^\/api/], // the service worker must not return index.html for API calls
         runtimeCaching: [{ urlPattern: /^\/api\//, handler: 'NetworkOnly' }],
       },
     }),
   ],
-  server: { proxy: { '/api': 'http://localhost:8000' } }, // dev: gọi backend thật khi tắt mock
+  server: { proxy: { '/api': 'http://localhost:8000' } }, // dev: reach the real backend when mocks are off
   test: {
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',

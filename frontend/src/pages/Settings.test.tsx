@@ -18,7 +18,7 @@ describe("Cài đặt: đổi tên hiển thị", () => {
     await user.clear(input);
     await user.type(input, "Vi Nguyễn");
     await user.click(screen.getByRole("button", { name: "Lưu" }));
-    // Tên mới hiện ở thẻ tài khoản (và ở header nếu có).
+    // The new name shows on the account card (and in the header if present).
     expect((await screen.findAllByText("Vi Nguyễn")).length).toBeGreaterThan(0);
     expect(screen.queryByLabelText("Tên hiển thị")).not.toBeInTheDocument();
   }, 15_000);

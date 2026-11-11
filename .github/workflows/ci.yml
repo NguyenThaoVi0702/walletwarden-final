@@ -1,4 +1,4 @@
-# Automated checks on every push and pull request (plan §8.2 step 4).
+# Automated checks on every push and pull request.
 # A PR can be merged only when every job below is green (branch protection).
 name: CI
 
@@ -47,7 +47,7 @@ jobs:
               - 'backend/app/ai/interface.py'
               - 'backend/openapi.json'
 
-  # ------------------------------------------------------------------ PR hygiene (all members)
+  # ------------------------------------------------------------------ PR hygiene
   pr-rules:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -75,25 +75,23 @@ jobs:
             exit 1
           fi
 
-  # ------------------------------------------------------------------ frozen contracts (M1)
+  # ------------------------------------------------------------------ frozen contracts
   contract-guard:
     needs: changes
     if: github.event_name == 'pull_request' && needs.changes.outputs.contract == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Contract changes need approval from all three members
+      - name: Contract changes need maintainer approval
         env:
           APPROVED: ${{ contains(github.event.pull_request.labels.*.name, 'contract-approved') }}
         run: |
-          # Contracts are frozen from 31 Oct 2026 (plan §6.3).
-          if [ "$(date -u +%Y%m%d)" -lt 20261031 ]; then echo "Before freeze, OK"; exit 0; fi
           if [ "$APPROVED" != "true" ]; then
             echo "::error::This PR changes a shared contract (schemas, openapi.json or ai/interface.py)."
-            echo "::error::Agree it with all three members, record it in the minutes, then add the label 'contract-approved'."
+            echo "::error::Get it agreed with the maintainers, then add the label 'contract-approved'."
             exit 1
           fi
 
-  # ------------------------------------------------------------------ backend + AI (Khải, Vi)
+  # ------------------------------------------------------------------ backend + AI
   backend:
     needs: changes
     if: needs.changes.outputs.backend == 'true' || github.event_name != 'pull_request'
@@ -134,7 +132,7 @@ jobs:
             exit 1
           fi
 
-  # ------------------------------------------------------------------ frontend (Tùng)
+  # ------------------------------------------------------------------ frontend
   frontend:
     needs: changes
     if: needs.changes.outputs.frontend == 'true' || github.event_name != 'pull_request'

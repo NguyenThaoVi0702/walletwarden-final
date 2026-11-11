@@ -20,7 +20,7 @@ import {
 } from "../lib/format";
 import { categoryIcon } from "../lib/categoryIcon";
 
-/** Để trống = không đặt hạn mức. */
+/** Empty = no limit set. */
 const optionalMoney = z
   .string()
   .trim()

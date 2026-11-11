@@ -1,4 +1,4 @@
-"""Dev-only page for trying the AI module by hand (owner: Vi). Not part of the real app.
+"""Development page for trying the AI module by hand. Not part of the app.
 
     cd backend
     $env:WW_AI_PROVIDERS="local"      # or local,gemini / fake

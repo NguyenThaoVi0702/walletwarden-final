@@ -33,14 +33,14 @@ export const queryKeys = {
   report: (month: string) => ["ai", "report", month] as const,
 };
 
-// ---------- Hệ thống
+// ---------- System
 export const useHealth = () =>
   useQuery({
     queryKey: queryKeys.health,
     queryFn: () => request<Health>("GET", "/api/health"),
   });
 
-// ---------- F1: Auth
+// ---------- Auth
 export const loginRequest = (body: LoginRequest) =>
   request<TokenResponse>("POST", "/api/auth/login", { body });
 
@@ -58,7 +58,7 @@ export function useUpdateSettings() {
   });
 }
 
-// ---------- F3: Danh mục
+// ---------- Categories
 export const useCategories = () =>
   useQuery({
     queryKey: queryKeys.categories,
@@ -92,7 +92,7 @@ export function useDeleteCategory() {
   });
 }
 
-// ---------- F2: Giao dịch
+// ---------- Transactions
 export const useTransactions = (month: string) =>
   useQuery({
     queryKey: queryKeys.transactions(month),
@@ -100,7 +100,7 @@ export const useTransactions = (month: string) =>
       request<Transaction[]>("GET", "/api/transactions", { query: { month } }),
   });
 
-/** Sau khi lưu, các số liệu tháng (dashboard, ngân sách) đều đổi nên làm mới hết. */
+/** After saving, the monthly figures (dashboard, budgets) change, so refresh them all. */
 function invalidateMonthData(qc: ReturnType<typeof useQueryClient>) {
   return Promise.all([
     qc.invalidateQueries({ queryKey: ["transactions"] }),
@@ -136,7 +136,7 @@ export function useDeleteTransaction() {
   });
 }
 
-// ---------- F4: Ngân sách
+// ---------- Budgets
 export const useBudgets = (month: string) =>
   useQuery({
     queryKey: queryKeys.budgets(month),
@@ -153,7 +153,7 @@ export function useSaveBudgets() {
   });
 }
 
-// ---------- F5: Dashboard
+// ---------- Dashboard
 export const useDashboard = (month: string) =>
   useQuery({
     queryKey: queryKeys.dashboard(month),
@@ -161,7 +161,7 @@ export const useDashboard = (month: string) =>
       request<Dashboard>("GET", "/api/dashboard", { query: { month } }),
   });
 
-// ---------- F6–F9: AI
+// ---------- AI
 export function useChat() {
   const qc = useQueryClient();
   return useMutation({
@@ -169,7 +169,7 @@ export function useChat() {
       request<ChatReply>("POST", "/api/ai/chat", {
         body: { ...body, history: body.history.slice(-6) },
       }),
-    // "Nay ăn bánh cuốn hết 50k" → backend đã ghi giao dịch: làm mới danh sách và dashboard.
+    // A chat message that is a spending statement is logged by the backend: refresh the lists.
     onSuccess: (reply) => {
       if (reply.transaction) return invalidateMonthData(qc);
     },

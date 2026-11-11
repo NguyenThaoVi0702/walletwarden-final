@@ -4,7 +4,7 @@ version = "1.0.0"
 description = "WalletWarden API, domain services and AI module"
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    # API & data (Khải)
+    # API and data
     "fastapi>=0.115",
     "uvicorn[standard]>=0.32",
     "pydantic>=2.9",
@@ -15,12 +15,12 @@ dependencies = [
     "pwdlib[argon2]>=0.2",
     "slowapi>=0.1.9",
     "python-multipart>=0.0.12",
-    # AI module (Vi)
+    # AI and tooling
     "openai>=1.54",
     "google-genai>=1.0",
     "jinja2>=3.1",
     "pyyaml>=6.0",
-    "qrcode>=8.0",
+    "qrcode[pil]>=8.0",
     "httpx>=0.27",
 ]
 

@@ -63,10 +63,7 @@ export const SelectField = forwardRef<
   );
 });
 
-/**
- * Ô nhập tiền dạng chữ: gõ "45k", "1tr2", "1.500.000"… và thấy ngay số tiền hiểu được.
- * Giá trị form vẫn là chuỗi; schema Zod dùng `parseMoney` để chuyển thành số nguyên VND.
- */
+/** Text money input: type "45k", "1tr2" or "1.500.000" and see the parsed amount. The form value stays a string; the Zod schema uses `parseMoney`. */
 export const MoneyInput = forwardRef<
   HTMLInputElement,
   Omit<InputHTMLAttributes<HTMLInputElement>, "value"> & {

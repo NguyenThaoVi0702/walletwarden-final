@@ -13,7 +13,7 @@ const TONES: { value: Tone; label: string; hint: string }[] = [
   { value: "savage", label: "Cà khịa", hint: "Roast không thương tiếc" },
 ];
 
-/** Thẻ tài khoản: xem và đổi tên hiển thị (tên dùng trong lời chào ở Tổng quan). */
+/** Account card: view and change the display name (used in the dashboard greeting). */
 function AccountCard({
   user,
   onSignOut,

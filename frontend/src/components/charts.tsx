@@ -16,12 +16,12 @@ import { categoryColor, OTHER_COLOR } from "../lib/categoryColor";
 import { categoryIcon } from "../lib/categoryIcon";
 import { formatCompactVND, formatDate, formatVND } from "../lib/format";
 
-// Màu dữ liệu = màu danh mục người dùng chọn. Lưới/trục nhạt để dữ liệu nổi bật;
-// viền trắng 2px tách các phần (miếng bánh, đoạn cột chồng) với nhau.
+// Data color is the category color chosen by the user. A light grid and axes keep the data prominent;
+// a 2px white border separates slices and stacked segments.
 const GRID_COLOR = "rgba(14, 47, 81, 0.08)";
 const TICK = { fill: "rgba(14, 47, 81, 0.6)", fontSize: 12 };
 const GAP = "#ffffff";
-/** Tối đa 7 danh mục có màu riêng; phần còn lại gộp thành "Còn lại" (xám). */
+/** At most 7 categories get their own color; the rest are grouped as "Còn lại" (gray). */
 const MAX_SERIES = 7;
 const REST_ID = -1;
 
@@ -42,7 +42,7 @@ function seriesOf(categories: Category[] | undefined) {
   };
 }
 
-/** Danh mục lớn nhất giữ màu riêng, phần đuôi gộp vào "Còn lại". */
+/** The largest categories keep their color; the tail is grouped as "Còn lại". */
 function topCategories(data: CategoryAmount[]): Set<number> {
   const sorted = [...data].sort((a, b) => b.amount - a.amount);
   const keep = sorted.length > MAX_SERIES + 1 ? MAX_SERIES : sorted.length;
@@ -62,7 +62,7 @@ function Dot({ color }: { color: string }) {
   );
 }
 
-/** Chi theo danh mục: biểu đồ tròn (donut) tỷ lệ %, kèm bảng chú thích = số liệu đầy đủ. */
+/** Spending by category: donut chart with a legend table of the exact figures. */
 export function CategoryDonutChart({
   data,
   categories,
@@ -159,7 +159,7 @@ type DayRow = {
   [seriesKey: `c${number}`]: number;
 };
 
-/** Chi theo ngày: mỗi cột là một ngày, chia thành các đoạn theo danh mục (cột chồng). */
+/** Spending by day: one stacked column per day, split by category. */
 export function DailyExpenseChart({
   data,
   month,
@@ -170,7 +170,7 @@ export function DailyExpenseChart({
   data: DailyAmount[];
   month: string;
   lastDay: number;
-  /** Tổng chi cả tháng theo danh mục: quyết định thứ tự chồng và danh mục nào có màu riêng. */
+  /** Month total by category: sets the stacking order and which categories get a color. */
   byCategory: CategoryAmount[];
   categories: Category[] | undefined;
 }) {
@@ -181,7 +181,7 @@ export function DailyExpenseChart({
     .map((c) => c.category_id)
     .filter((id) => keep.has(id));
   const hasRest = byCategory.some((c) => !keep.has(c.category_id));
-  // Đoạn lớn nhất (danh mục chi nhiều nhất tháng) nằm dưới cùng, sát trục.
+  // The largest segment (top category of the month) sits at the bottom, next to the axis.
   const stack = [...order, ...(hasRest ? [REST_ID] : [])].map((id) =>
     series(id, byCategory.find((c) => c.category_id === id)?.name),
   );
@@ -201,7 +201,7 @@ export function DailyExpenseChart({
       const key = keep.has(p.category_id) ? p.category_id : REST_ID;
       row[`c${key}`] = (row[`c${key}`] ?? 0) + p.amount;
     }
-    // Dữ liệu cũ chưa có phần chia theo danh mục: dồn cả ngày vào "Còn lại".
+    // Older data without a category split: put the whole day in "Còn lại".
     if (!parts.length && row.expense) row[`c${REST_ID}`] = row.expense;
     return row;
   });

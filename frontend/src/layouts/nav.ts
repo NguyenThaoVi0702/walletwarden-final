@@ -4,7 +4,7 @@ export interface NavItem {
   to: string;
   label: string;
   icon: IconName;
-  /** Hiện ở bottom nav trên điện thoại (tối đa 5 mục). Các mục khác vào từ Cài đặt. */
+  /** Shown in the phone bottom navigation (max 5 items); the others are reached from Settings. */
   mobile: boolean;
 }
 

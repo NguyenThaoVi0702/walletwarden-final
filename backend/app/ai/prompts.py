@@ -1,7 +1,6 @@
 """Render the Jinja2 templates in /prompts into chat messages.
 
-Prompts live in template files (not in code) so they can be reviewed and
-re-tested against the 30-case test set without touching Python.
+Prompts live in template files so they can be changed without touching Python.
 """
 
 from dataclasses import dataclass, field

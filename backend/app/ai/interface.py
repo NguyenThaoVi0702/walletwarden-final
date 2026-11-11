@@ -1,11 +1,8 @@
-"""Public contract of the AI module (frozen at milestone M1, 30 Oct).
+"""Public contract of the AI module.
 
 The rest of the backend talks to the AI only through `AIService` and the models
-below. Every number in these models is calculated by the domain services (Khải)
-before the call; the model only writes wording, so it cannot get the maths wrong.
-
-Changing anything in this file after 30 Oct needs approval from all three members
-(PR label `contract-approved`).
+below. Every number in these models is calculated by the domain services before
+the call; the model only writes wording, so it cannot get the maths wrong.
 """
 
 from datetime import date

@@ -18,13 +18,13 @@ class Settings(BaseSettings):
 
     env: str = "dev"
 
-    # --- Backend (owned by Khải) ---
+    # --- Backend ---
     database_url: str = "sqlite:///./walletwarden.db"
     jwt_secret: str = "dev-only-secret-change-me"
     jwt_expire_minutes: int = 1440
     frontend_dist: Path = REPO_ROOT / "frontend" / "dist"
 
-    # --- AI module (owned by Vi) ---
+    # --- AI ---
     ai_providers: str = "fake"
     llama_base_url: str = "http://127.0.0.1:8080/v1"
     llama_model: str = "walletwarden-local"

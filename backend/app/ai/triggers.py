@@ -1,14 +1,8 @@
 """Decide automatically whether a new transaction deserves a roast, and which one.
 
-Pure function, no database: the backend passes the new transaction plus the last
-~35 days of transactions and the budgets, and gets back at most one roast. All
-numbers are computed here, so the model only has to write the words.
-
-    from app.ai import detect_roast
-    cand = detect_roast(new_tx, recent, budgets={"Ăn uống": 2_500_000},
-                        total_budget=6_000_000, tone=user.roast_tone, fired=keys_this_month)
-    if cand:
-        background.add_task(run_roast, user.id, cand.context)   # save cand.key with the alert
+Pure function, no database: pass the new transaction, the last ~35 days of
+transactions and the budgets, and get back at most one roast. All numbers are
+computed here, so the model only has to write the words.
 """
 
 import calendar

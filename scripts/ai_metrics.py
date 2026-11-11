@@ -1,4 +1,4 @@
-"""Summarise logs/ai_calls.jsonl for the Metrics sheet (AI response time, fallback rate).
+"""Summarize logs/ai_calls.jsonl: AI response time and fallback rate.
 
 cd backend && uv run python ../scripts/ai_metrics.py            # all days
 cd backend && uv run python ../scripts/ai_metrics.py --day 2026-11-12

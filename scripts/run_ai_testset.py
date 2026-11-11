@@ -1,4 +1,4 @@
-"""Run the 30-case AI test set and write a rating sheet for two reviewers.
+"""Run the 30-case AI test set and write a rating sheet for reviewers.
 
 Usage (from /backend):
     uv run python ../scripts/run_ai_testset.py                     # simulated AI (rules)
@@ -6,7 +6,7 @@ Usage (from /backend):
     uv run python ../scripts/run_ai_testset.py --providers local,gemini
 
 Output: prompts/testset/results/<timestamp>_<providers>.md (+ .csv)
-Fill the `rater_1` / `rater_2` columns with Y or N, then compute the AI quality score.
+Fill the `rater_1` / `rater_2` columns with Y or N to score the run.
 """
 
 import argparse

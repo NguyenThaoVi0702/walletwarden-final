@@ -1,6 +1,6 @@
 import { currentMonth, formatMonth, shiftMonth } from "../lib/format";
 
-/** Chọn tháng bằng 2 nút ‹ ›. Không cho đi quá tháng hiện tại. */
+/** Month picker with ‹ › buttons. Cannot go past the current month. */
 export function MonthPicker({
   value,
   onChange,

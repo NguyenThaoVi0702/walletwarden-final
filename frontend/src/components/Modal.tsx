@@ -1,9 +1,6 @@
 import { useEffect, useId, useRef, type ReactNode } from "react";
 
-/**
- * Hộp thoại: bottom sheet trên điện thoại, hộp giữa màn hình trên desktop.
- * Esc hoặc bấm ra ngoài để đóng.
- */
+/** Dialog: bottom sheet on phones, centered box on desktop. Esc or an outside click closes it. */
 export function Modal({
   title,
   onClose,

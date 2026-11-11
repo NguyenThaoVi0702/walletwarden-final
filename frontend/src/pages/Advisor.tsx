@@ -12,7 +12,7 @@ export const AI_DISCLAIMER =
 const MAX_QUESTION = 500;
 const STORAGE_KEY = "ww_chat";
 
-/** ID tăng dần (Date.now() có thể trùng khi mock trả lời tức thì). */
+/** Increasing ID (Date.now() can collide when the mock answers instantly). */
 let seq = Date.now();
 const nextId = () => ++seq;
 
@@ -26,9 +26,9 @@ interface Message extends ChatTurn {
   id: number;
   provider?: ProviderName;
   fallback?: boolean;
-  /** Tin nhắn là một khoản thu/chi và backend đã ghi thành giao dịch. */
+  /** The message was a spending statement and the backend logged it as a transaction. */
   logged?: boolean;
-  /** Câu trả lời lỗi (429, mất mạng…): không gửi vào history. */
+  /** Error reply (429, network…): not sent in the history. */
   error?: boolean;
 }
 
@@ -52,16 +52,16 @@ export default function AdvisorPage() {
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-30)));
     } catch {
-      // trình duyệt chặn storage: chỉ mất lịch sử khi chuyển trang
+      // storage blocked by the browser: history is only lost when navigating away
     }
     bottom.current?.scrollIntoView?.({ behavior: "smooth", block: "end" });
   }, [messages, chat.isPending]);
 
-  /** `base` = các tin nhắn đã có trước câu hỏi này (retry truyền bản đã bỏ câu lỗi). */
+  /** `base` = messages before this question (a retry passes the list without the error). */
   const ask = (question: string, base: Message[] = messages) => {
     const q = question.trim().slice(0, MAX_QUESTION);
     if (!q || chat.isPending) return;
-    // History = các lượt hỏi/đáp thành công trước đó (hook tự cắt còn 6 lượt gần nhất).
+    // History = earlier successful turns (the hook keeps the last 6).
     const history: ChatTurn[] = base
       .filter((m) => !m.error)
       .map(({ role, content }) => ({ role, content }));
@@ -103,7 +103,7 @@ export default function AdvisorPage() {
     ask(input);
   };
 
-  /** Hỏi lại câu gần nhất bị lỗi. */
+  /** Ask the last failed question again. */
   const retry = () => {
     const lastUser = [...messages].reverse().find((m) => m.role === "user");
     if (!lastUser) return;

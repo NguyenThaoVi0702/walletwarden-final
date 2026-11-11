@@ -1,9 +1,8 @@
 /**
- * Màu danh mục. Người dùng chọn màu cho từng danh mục; mọi biểu đồ có danh mục dùng đúng màu đó.
- *
- * 8 màu dưới đây là bảng màu phân loại đã kiểm tra (dataviz validator, nền trắng): đủ khác nhau
- * với người mù màu và theo đúng thứ tự này. Màu xám dành cho "Khác"/"Còn lại".
- * Backend (services/defaults.py) gán sẵn các màu này cho danh mục mặc định.
+ * Category colors. Users pick a color per category and every chart uses it.
+ * The 8 colors are a validated categorical palette (distinguishable for color-blind users),
+ * in this order; gray is for "Khác" / "Còn lại". The backend (services/defaults.py) assigns
+ * them to the default categories.
  */
 export const CATEGORY_COLORS = [
   { value: "#2a78d6", label: "Xanh dương" },
@@ -18,7 +17,7 @@ export const CATEGORY_COLORS = [
 
 export const OTHER_COLOR = "#8b8f98";
 
-/** Tài khoản tạo trước khi có màu: danh mục mặc định lấy màu như backend gán. */
+/** Accounts created before colors existed: default categories get the colors the backend assigns. */
 const DEFAULT_BY_NAME: Record<string, string> = {
   "Ăn uống": "#2a78d6",
   "Di chuyển": "#eb6834",
@@ -48,7 +47,7 @@ export function categoryColor(category: ColoredCategory | undefined): string {
   );
 }
 
-/** Màu gợi ý cho danh mục mới: màu đầu tiên trong bảng chưa ai dùng. */
+/** Suggested color for a new category: the first palette color nobody uses yet. */
 export function suggestColor(existing: ColoredCategory[]): string {
   const used = new Set(existing.map(categoryColor));
   return (

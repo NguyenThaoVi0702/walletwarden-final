@@ -25,7 +25,7 @@ export default function LoginPage() {
 
   const login = useMutation({
     mutationFn: loginRequest,
-    // GuestOnly tự chuyển sang trang `?next=` khi đã có user.
+    // GuestOnly redirects to `?next=` once there is a user.
     onSuccess: signIn,
   });
 

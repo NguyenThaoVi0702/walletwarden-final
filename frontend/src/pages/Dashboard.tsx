@@ -38,7 +38,7 @@ function Stat({
   );
 }
 
-/** Số ngày cần vẽ: tháng hiện tại → tới hôm nay; tháng cũ → cả tháng. */
+/** Days to draw: current month up to today, past months in full. */
 function daysToShow(month: string): number {
   const [y, m] = month.split("-").map(Number);
   return month === currentMonth()
@@ -56,7 +56,7 @@ export default function DashboardPage() {
   const cats = useCategories();
   const catById = new Map(cats.data?.map((c) => [c.id, c]));
 
-  // Ngân sách sắp/đã vượt lên đầu.
+  // Budgets that are near or over come first.
   const watchList = [...(budgets.data?.categories ?? [])]
     .sort((a, b) => b.usage_pct - a.usage_pct)
     .slice(0, 3);

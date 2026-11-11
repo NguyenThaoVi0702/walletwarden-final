@@ -1,9 +1,4 @@
-"""FastAPI entry point.
-
-Bootstrap version so every track can start the server on day one.
-Khải extends it in T17 (database, Alembic, routers); keep the health route
-and the static-files mount at the end, the demo script depends on both.
-"""
+"""FastAPI entry point: API routers under /api and the built web app at "/"."""
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -69,6 +64,6 @@ class SPAStaticFiles(StaticFiles):
             raise
 
 
-# Must stay last: serves the React build on "/" so one tunnel link serves everything.
+# Keep last: the catch-all web app mount must not shadow the API routes.
 if settings.frontend_dist.is_dir():
     app.mount("/", SPAStaticFiles(directory=settings.frontend_dist, html=True), name="frontend")

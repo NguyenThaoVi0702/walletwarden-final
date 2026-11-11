@@ -4,10 +4,10 @@ import { afterAll, afterEach, beforeAll, beforeEach } from "vitest";
 import { resetMockDb } from "../mocks/handlers";
 import { server } from "../mocks/server";
 
-// Trang được lazy-load: lần đầu Vitest phải biên dịch chunk nên cần quá 1 s mặc định.
+// Pages are lazy-loaded: the first Vitest run compiles each chunk and needs more than the default 1 s.
 configure({ asyncUtilTimeout: 5000 });
 
-// jsdom không có ResizeObserver mà ResponsiveContainer của Recharts cần.
+// jsdom has no ResizeObserver, which Recharts' ResponsiveContainer needs.
 globalThis.ResizeObserver ??= class {
   observe() {}
   unobserve() {}

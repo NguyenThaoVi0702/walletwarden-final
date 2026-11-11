@@ -2,7 +2,7 @@
 /// <reference types="vite-plugin-pwa/client" />
 
 interface ImportMetaEnv {
-  /** "true" → MSW chặn mọi /api/* và trả dữ liệu mẫu. Build production không bật. */
+  /** "true": MSW answers every /api/* request with sample data. Not enabled in production builds. */
   readonly VITE_USE_MOCKS?: string;
 }
 

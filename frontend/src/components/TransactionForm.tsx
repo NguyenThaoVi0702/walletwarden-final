@@ -62,7 +62,7 @@ const KINDS: { value: TxKind; label: string }[] = [
   { value: "income", label: "Khoản thu" },
 ];
 
-/** Form thêm (không truyền `initial`) hoặc sửa giao dịch. */
+/** Form to add (no `initial`) or edit a transaction. */
 export function TransactionForm({
   initial,
   onDone,

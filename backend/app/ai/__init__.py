@@ -1,4 +1,4 @@
-"""AI module (owner: Vi). Import only from here or from `app.ai.interface`."""
+"""AI module. Import only from here or from `app.ai.interface`."""
 
 from functools import lru_cache
 

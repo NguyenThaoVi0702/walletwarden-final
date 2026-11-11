@@ -3,7 +3,7 @@ import type { TokenResponse, User } from "../api/types";
 
 export interface AuthState {
   user: User | null;
-  /** true khi đang có token nhưng chưa tải xong /api/me. */
+  /** true while a token exists but /api/me has not loaded yet. */
   loading: boolean;
   signIn: (res: TokenResponse) => void;
   signOut: () => void;

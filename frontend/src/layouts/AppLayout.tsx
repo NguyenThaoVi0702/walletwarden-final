@@ -4,11 +4,7 @@ import { Icon } from "../components/Icon";
 import { RoastProvider } from "../roast/RoastProvider";
 import { NAV_ITEMS } from "./nav";
 
-/**
- * Khung app sau đăng nhập.
- * - ≥ 768px (md): sidebar navy cố định bên trái + nội dung rộng.
- * - < 768px: header navy trên cùng + bottom navigation 5 mục.
- */
+/** App shell after sign-in: navy sidebar from 768px, navy header with a 5-item bottom navigation below. */
 export function AppLayout() {
   const { user, signOut } = useAuth();
   const { pathname } = useLocation();

@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
-/** VITE_USE_MOCKS=true (xem .env.development) → MSW chặn mọi /api/* và trả dữ liệu mẫu. */
+/** VITE_USE_MOCKS=true (see .env.development): MSW answers every /api/* request with sample data. */
 async function enableMocking() {
   if (import.meta.env.VITE_USE_MOCKS !== "true") return;
   const { worker } = await import("./mocks/browser");

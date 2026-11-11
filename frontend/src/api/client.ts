@@ -19,11 +19,11 @@ export const tokenStore = {
   },
 };
 
-/** Lỗi HTTP từ API. `detail` theo dạng mặc định của FastAPI `{"detail": ...}`. */
+/** HTTP error from the API. `detail` follows the FastAPI format `{"detail": ...}`. */
 export class ApiError extends Error {
   readonly status: number;
   readonly detail: unknown;
-  /** Chỉ có khi status 429 (AI bận): số giây đọc từ header Retry-After. */
+  /** Only on 429 (AI busy): seconds from the Retry-After header. */
   readonly retryAfter: number | null;
 
   constructor(
@@ -39,7 +39,7 @@ export class ApiError extends Error {
   }
 }
 
-/** Gọi khi API trả 401 (token hết hạn / sai). AuthProvider đăng ký hàm này để về trang đăng nhập. */
+/** Called on 401; AuthProvider uses it to return to the sign-in page. */
 let onUnauthorized: () => void = () => {};
 export function setUnauthorizedHandler(handler: () => void) {
   onUnauthorized = handler;
@@ -64,7 +64,7 @@ async function toApiError(res: Response): Promise<ApiError> {
     if (body && typeof body === "object" && "detail" in body)
       detail = body.detail;
   } catch {
-    // body không phải JSON
+    // body is not JSON
   }
   return new ApiError(
     res.status,
@@ -73,10 +73,7 @@ async function toApiError(res: Response): Promise<ApiError> {
   );
 }
 
-/**
- * Client có type sinh từ backend/openapi.json (src/api/schema.d.ts).
- * Dùng cho các endpoint đã có trong openapi.json: `api.GET("/api/health")`.
- */
+/** Typed client generated from backend/openapi.json (src/api/schema.d.ts). */
 export const api = createClient<paths>({ baseUrl: "/" });
 api.use({
   onRequest({ request }) {
@@ -91,10 +88,7 @@ api.use({
 
 type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
-/**
- * Fetch có JWT + xử lý lỗi chung, dùng cho các endpoint chưa có trong openapi.json.
- * Ném `ApiError` khi status không 2xx. 204 → trả `undefined`.
- */
+/** Fetch with the JWT and shared error handling. Throws `ApiError` on non-2xx; 204 returns `undefined`. */
 export async function request<T>(
   method: Method,
   path: string,
@@ -120,7 +114,7 @@ export async function request<T>(
   });
 
   if (!res.ok) {
-    // Không đá người dùng ra khi chính lệnh đăng nhập trả 401 (sai mật khẩu).
+    // Do not sign the user out when the sign-in request itself returns 401 (wrong password).
     if (res.status === 401 && !path.startsWith("/api/auth/")) onUnauthorized();
     throw await toApiError(res);
   }
@@ -128,7 +122,7 @@ export async function request<T>(
   return (await res.json()) as T;
 }
 
-/** Tải file (vd. CSV) có kèm JWT rồi cho trình duyệt lưu với tên `filename`. */
+/** Download a file (e.g. CSV) with the JWT and let the browser save it as `filename`. */
 export async function downloadFile(
   path: string,
   filename: string,
@@ -151,10 +145,7 @@ export async function downloadFile(
   URL.revokeObjectURL(href);
 }
 
-/**
- * Câu `detail` tiếng Anh mà backend trả (PR #42, backend/app/api/*.py) → tiếng Việt.
- * Backend thêm lỗi mới thì bổ sung vào đây; câu chưa có sẽ hiện nguyên văn.
- */
+/** Backend `detail` messages mapped to the Vietnamese text shown to users. Unknown messages are shown as is. */
 const DETAIL_VI: Record<string, string> = {
   "Invalid email or password": "Email hoặc mật khẩu không đúng.",
   "Email already registered": "Email này đã được đăng ký.",
@@ -177,7 +168,7 @@ const DETAIL_VI: Record<string, string> = {
     "Chưa đoán được danh mục, bạn chọn giúp nhé.",
 };
 
-/** Thông báo lỗi tiếng Việt để hiện cho người dùng. */
+/** Vietnamese error message to show the user. */
 export function errorMessage(err: unknown): string {
   if (err instanceof ApiError) {
     if (err.status === 429) {
@@ -185,7 +176,7 @@ export function errorMessage(err: unknown): string {
     }
     if (typeof err.detail === "string")
       return DETAIL_VI[err.detail] ?? err.detail;
-    // 422 do Pydantic kiểm tra: detail là mảng [{loc, msg, type}]
+    // 422 from Pydantic: detail is an array [{loc, msg, type}]
     if (err.status === 422)
       return "Dữ liệu chưa hợp lệ, kiểm tra lại các ô đã nhập.";
     if (err.status >= 500) return "Máy chủ đang gặp sự cố, thử lại sau nhé.";

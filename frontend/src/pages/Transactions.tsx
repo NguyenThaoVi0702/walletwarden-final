@@ -27,7 +27,7 @@ export default function TransactionsPage() {
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
 
-  // /transactions?new=1 (từ nút "Thêm giao dịch" ở Dashboard) → mở form thêm ngay.
+  // /transactions?new=1 (from the "Thêm giao dịch" button on the dashboard) opens the add form.
   const creating = params.get("new") === "1";
   const openCreate = () => setParams({ new: "1" }, { replace: true });
   const closeForm = () => {
