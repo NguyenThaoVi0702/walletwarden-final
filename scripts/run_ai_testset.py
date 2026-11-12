@@ -1,4 +1,4 @@
-"""Run the 30-case AI test set and write a rating sheet for reviewers.
+"""Run the 44-case AI test set and write a rating sheet for reviewers.
 
 Usage (from /backend):
     uv run python ../scripts/run_ai_testset.py                     # simulated AI (rules)

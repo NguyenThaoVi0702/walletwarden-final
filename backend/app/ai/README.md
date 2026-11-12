@@ -65,7 +65,7 @@ Thresholds are constants at the top of [triggers.py](triggers.py). Rent, bills, 
 ```powershell
 cd backend
 uv run pytest tests/ai -q                                      # unit tests, no GPU needed
-uv run python ../scripts/run_ai_testset.py                     # 30-case test set, simulated AI
+uv run python ../scripts/run_ai_testset.py                     # 44-case test set, simulated AI
 uv run python ../scripts/run_ai_testset.py --providers local   # against the local model
 uv run python ../llm/bench.py --concurrency 1 4 5              # llama-server speed
 uv run python ../scripts/ai_metrics.py                         # latency and fallback rate from the log
@@ -86,4 +86,4 @@ Open <http://127.0.0.1:8001>.
 
 1. Edit the template in [prompts/](../../../prompts/README.md).
 2. Run `uv run pytest tests/ai`; it renders every prompt and fails on missing variables.
-3. Run the 30-case test set against the local model and review the result file in `prompts/testset/results/`.
+3. Run the 44-case test set against the local model and review the result file in `prompts/testset/results/`.

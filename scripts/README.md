@@ -7,10 +7,9 @@ Python scripts run from `backend/` so they share its environment: `cd backend; u
 | `start-demo.ps1` | one command: build the web app, start the model and backend, open a public link with a QR code |
 | `seed_demo.py` | create `demo@walletwarden.vn` / `matkhau123` with two months of sample data (`--reset` starts over) |
 | `show_qr.py` | print a URL as a QR code and save `scripts/.demo/qr.png` |
-| `run_ai_testset.py` | run the 30-case AI test set and write a rating sheet |
+| `run_ai_testset.py` | run the 44-case AI test set and write a rating sheet |
 | `ai_metrics.py` | summarize `logs/ai_calls.jsonl`: median and max latency, fallback rate |
 | `loadtest/ai_load.js` | k6 load test for the AI endpoints |
-| `github/` | optional helper that configures a GitHub repository (labels, issues, branch protection) |
 
 ## start-demo.ps1
 

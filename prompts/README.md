@@ -11,7 +11,7 @@ Each AI feature uses exactly one Jinja2 template. They are rendered by [backend/
 | `report_system.j2` | monthly report (JSON) | – |
 | `quick_entry_system.j2` | quick entry (JSON) | `categories`: category names |
 | `roast_examples.yaml` | few-shot examples by tone | – |
-| `testset/cases.yaml` | 30-case test set | – |
+| `testset/cases.yaml` | 44-case test set | – |
 | `testset/results/` | output of each test-set run | – |
 
 Template filters: `{{ x | vnd }}` gives `1.500.000đ`, `{{ x | pct }}` gives `82%`.

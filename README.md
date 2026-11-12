@@ -34,8 +34,8 @@ Optional: an NVIDIA GPU for the local model, a [Gemini API key](https://aistudio
 ## Quick start (computer)
 
 ```powershell
-git clone https://github.com/NguyenThaoVi0702/walletwarden.git
-cd walletwarden
+git clone https://github.com/NguyenThaoVi0702/walletwarden-final.git
+cd walletwarden-final
 copy .env.example .env          # use `cp` on macOS/Linux
 
 cd frontend
@@ -111,7 +111,6 @@ frontend/    React + TypeScript + Vite progressive web app
 prompts/     Prompt templates and the AI test set
 llm/         Scripts to install and run the local model
 scripts/     Demo launcher, sample data, QR code, load test
-tests/       Cross-component test notes
 assets/      Logo and brand colors
 ```
 
@@ -119,7 +118,6 @@ assets/      Logo and brand colors
 
 - [API reference](backend/API_README.md) and the OpenAPI contract in [backend/openapi.json](backend/openapi.json)
 - [Backend guide](backend/README.md) · [Frontend guide](frontend/README.md) · [AI module](backend/app/ai/README.md)
-- [Contributing](CONTRIBUTING.md)
 
 ## Troubleshooting
 

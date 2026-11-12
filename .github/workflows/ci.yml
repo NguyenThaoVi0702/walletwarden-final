@@ -1,13 +1,11 @@
 # Automated checks on every push and pull request.
-# A PR can be merged only when every job below is green (branch protection).
 name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
-    branches: [main, develop]
-    types: [opened, synchronize, reopened, ready_for_review, edited, labeled, unlabeled]
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -25,7 +23,6 @@ jobs:
     outputs:
       backend: ${{ steps.filter.outputs.backend }}
       frontend: ${{ steps.filter.outputs.frontend }}
-      contract: ${{ steps.filter.outputs.contract }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -42,54 +39,6 @@ jobs:
               - 'frontend/**'
               - 'backend/openapi.json'
               - '.github/workflows/**'
-            contract:
-              - 'backend/app/schemas/**'
-              - 'backend/app/ai/interface.py'
-              - 'backend/openapi.json'
-
-  # ------------------------------------------------------------------ PR hygiene
-  pr-rules:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - name: PR title follows Conventional Commits
-        env:
-          TITLE: ${{ github.event.pull_request.title }}
-        run: |
-          if ! echo "$TITLE" | grep -Eq '^(feat|fix|docs|test|refactor|chore|ci|perf|style|build)(\([a-z0-9-]+\))?!?: .{3,}$'; then
-            echo "::error::PR title must look like 'feat(ai): add roast prompts' (Conventional Commits). Got: $TITLE"
-            exit 1
-          fi
-      - name: Branch name and target branch
-        env:
-          HEAD: ${{ github.head_ref }}
-          BASE: ${{ github.base_ref }}
-        run: |
-          if [ "$BASE" = "main" ]; then
-            if [ "$HEAD" != "develop" ] && ! echo "$HEAD" | grep -Eq '^hotfix/'; then
-              echo "::error::Only 'develop' (milestone release) or 'hotfix/*' may be merged into main."
-              exit 1
-            fi
-          elif ! echo "$HEAD" | grep -Eq '^(feature|fix|docs|test|chore|refactor)/[a-z0-9._-]+$'; then
-            echo "::error::Branch '$HEAD' must be named feature/..., fix/..., docs/..., test/..., chore/... (lowercase, dashes)."
-            exit 1
-          fi
-
-  # ------------------------------------------------------------------ frozen contracts
-  contract-guard:
-    needs: changes
-    if: github.event_name == 'pull_request' && needs.changes.outputs.contract == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Contract changes need maintainer approval
-        env:
-          APPROVED: ${{ contains(github.event.pull_request.labels.*.name, 'contract-approved') }}
-        run: |
-          if [ "$APPROVED" != "true" ]; then
-            echo "::error::This PR changes a shared contract (schemas, openapi.json or ai/interface.py)."
-            echo "::error::Get it agreed with the maintainers, then add the label 'contract-approved'."
-            exit 1
-          fi
 
   # ------------------------------------------------------------------ backend + AI
   backend:

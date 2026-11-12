@@ -524,5 +524,4 @@ Returns `ParsedEntry`: `kind`, `amount` (integer VND parsed by the backend),
 
 ## Related documentation
 
-- [`../INTEGRATION.md`](../INTEGRATION.md): cross-track contract and integration plan.
 - [`README.md`](./README.md): backend setup, ownership, architecture, and test commands.
